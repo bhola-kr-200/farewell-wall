@@ -377,22 +377,19 @@
       }
       @media (min-width: 700px) {
         .nrow {
-          grid-template-columns: 40px 140px 1fr 48px;
+          grid-template-columns: 140px 1fr 48px;
           align-items: center;
         }
-        .nrow .drag-handle {
-          grid-column: 1;
-        }
         .nrow .a {
-          grid-column: 2;
+          grid-column: 1;
           margin: 0;
         }
         .nrow .t {
-          grid-column: 3;
+          grid-column: 2;
           margin: 0;
         }
         .nrow .controls {
-          grid-column: 4;
+          grid-column: 3;
           grid-row: 1 / 2;
           display: flex;
           align-items: center;
@@ -404,32 +401,6 @@
           min-width: 34px;
           height: 34px;
           box-sizing: border-box;
-        }
-        .nrow .drag-handle {
-          background: transparent;
-          border: 0;
-          cursor: grab;
-          font-size: 16px;
-          color: var(--fg);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 6px;
-          min-width: 34px;
-          height: 34px;
-          box-sizing: border-box;
-        }
-        .nrow .drag-handle:active {
-          cursor: grabbing;
-        }
-        .nrow.dragging {
-          opacity: 0.6;
-        }
-        .nrow.placeholder {
-          border: 1px dashed rgba(0, 0, 0, 0.06);
-          background: rgba(0, 0, 0, 0.02);
-          min-height: 48px;
-          border-radius: 8px;
         }
       }
       /* Mobile: stack author above message */
@@ -449,13 +420,8 @@
           gap: 6px;
           align-items: flex-end;
         }
-        .nrow .controls .x,
-        .nrow .controls .drag-handle {
+        .nrow .controls .x {
           padding: 8px 10px;
-        }
-        .nrow .drag-handle {
-          grid-column: 2;
-          font-size: 16px;
         }
       }
       .pv {
@@ -1567,9 +1533,6 @@
       // ---- website ----
       const $ = (id) => document.getElementById(id),
         nl = $("nl");
-      let listDragEl = null,
-        listDragStartIndex = -1,
-        listPlaceholder = null;
       function go(v) {
         stopAll();
         $("home").hidden = v === "create";
@@ -1590,7 +1553,6 @@
         const d = document.createElement("div");
         d.className = "nrow";
         d.innerHTML =
-          '<button draggable="true" class="ter drag-handle" title="Drag to reorder" aria-label="Drag to reorder">☰</button>' +
           '<input class="a" maxlength="24" placeholder="From (optional)">' +
           '<textarea class="t" rows="2" maxlength="120" placeholder="Message"></textarea>' +
           '<div class="controls"><div style="display:flex;gap:6px;align-items:center">' +
@@ -1607,36 +1569,6 @@
           }
         };
         nl.appendChild(d);
-        // drag handle events
-        const dragHandle = d.querySelector(".drag-handle");
-        if (dragHandle) {
-          dragHandle.addEventListener("dragstart", (e) => {
-            listDragEl = d;
-            listDragStartIndex = [...nl.children].indexOf(d);
-            d.classList.add("dragging");
-            try {
-              e.dataTransfer.setData("text/plain", "");
-            } catch (e) {}
-            e.dataTransfer.effectAllowed = "move";
-            if (e.dataTransfer.setDragImage) {
-              const crt = d.cloneNode(true);
-              crt.style.position = "absolute";
-              crt.style.top = "-9999px";
-              document.body.appendChild(crt);
-              e.dataTransfer.setDragImage(crt, 10, 10);
-              setTimeout(() => document.body.removeChild(crt), 0);
-            }
-          });
-          dragHandle.addEventListener("dragend", () => {
-            d.classList.remove("dragging");
-            if (listPlaceholder) {
-              listPlaceholder.remove();
-              listPlaceholder = null;
-            }
-            listDragEl = null;
-            listDragStartIndex = -1;
-          });
-        }
         // better UX: focus the message textarea and bring it into view
         const ta = d.querySelector(".t");
         if (ta) {
@@ -1646,62 +1578,6 @@
         $("add").disabled = nl.children.length >= 10;
       }
 
-      // drag reorder for message rows
-      (function () {
-        function getDragAfterElement(container, y) {
-          const children = [
-            ...container.querySelectorAll(
-              ".nrow:not(.dragging):not(.placeholder)",
-            ),
-          ];
-          for (const child of children) {
-            const box = child.getBoundingClientRect();
-            const center = box.top + box.height / 2;
-            if (y < center) return child;
-          }
-          return null;
-        }
-        nl.addEventListener("dragover", (e) => {
-          e.preventDefault();
-          if (!listDragEl) return;
-          if (!listPlaceholder) {
-            listPlaceholder = document.createElement("div");
-            listPlaceholder.className = "nrow placeholder";
-            listPlaceholder.style.minHeight =
-              (listDragEl.offsetHeight || 48) + "px";
-            listPlaceholder.style.border = "1px dashed rgba(0,0,0,0.08)";
-            listPlaceholder.style.background = "rgba(0,0,0,0.02)";
-            listPlaceholder.style.borderRadius = "8px";
-          }
-          const after = getDragAfterElement(nl, e.clientY);
-          if (after == null) nl.appendChild(listPlaceholder);
-          else nl.insertBefore(listPlaceholder, after);
-        });
-        nl.addEventListener("drop", (e) => {
-          e.preventDefault();
-          if (!listDragEl) return;
-          if (listPlaceholder) {
-            nl.insertBefore(listDragEl, listPlaceholder);
-            listPlaceholder.remove();
-            listPlaceholder = null;
-            const newIndex = [...nl.children].indexOf(listDragEl);
-            if (
-              Array.isArray(custom) &&
-              listDragStartIndex >= 0 &&
-              listDragStartIndex < custom.length
-            ) {
-              const item = custom.splice(listDragStartIndex, 1)[0];
-              custom.splice(newIndex, 0, item);
-            }
-            applyData();
-          }
-          if (listDragEl) listDragEl.classList.remove("dragging");
-          listDragEl = null;
-          listDragStartIndex = -1;
-        });
-        document.addEventListener("dragover", (e) => e.preventDefault());
-        document.addEventListener("drop", (e) => e.preventDefault());
-      })();
 
       function applyData() {
         if (running) return;

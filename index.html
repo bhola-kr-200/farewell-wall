@@ -11,6 +11,11 @@
       href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/picnic@6.1.3/picnic.min.css"
+    />
+    <script src="https://code.iconify.design/iconify-icon/1.0.2/iconify-icon.min.js"></script>
     <style>
       :root {
         --bg: #f4f4f1;
@@ -98,11 +103,144 @@
         max-width: 640px;
         text-align: center;
       }
-      header.top,
+      .top {
+        position: relative;
+        width: 100%;
+        max-width: 1100px;
+      }
       main {
         width: 100%;
         max-width: 1100px;
       }
+      .gh {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--fg);
+        text-decoration: none;
+        padding: 6px 8px;
+        border-radius: 8px;
+      }
+      .gh svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+      .gh:hover {
+        background: rgba(0, 0, 0, 0.04);
+      }
+      /* theme toggle icon buttons */
+      .theme-toggle {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .theme-toggle button {
+        background: var(--card);
+        color: var(--fg);
+        border: 1px solid #ddd;
+        padding: 6px 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .theme-toggle button[aria-pressed="true"] {
+        background: var(--accent);
+        color: #fff;
+        border-color: transparent;
+      }
+      .theme-toggle i,
+      .theme-toggle iconify-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        display: inline-block;
+      }
+      .theme-toggle button:focus {
+        outline: 2px solid rgba(0, 0, 0, 0.12);
+        outline-offset: 2px;
+      }
+      /* dropdown variant */
+      .theme-dropdown .theme-btn {
+        background: transparent !important;
+        border: 0 !important;
+        padding: 6px 8px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--fg);
+        box-shadow: none;
+      }
+      .theme-dropdown .theme-btn i,
+      .theme-dropdown .theme-btn iconify-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: inherit;
+      }
+      .theme-dropdown .theme-btn:hover {
+        background: transparent;
+      }
+      .theme-dropdown .theme-btn:focus {
+        outline: none;
+        box-shadow: none;
+      }
+
+      .theme-dropdown .theme-menu {
+        color: var(--fg);
+        background: var(--card);
+        border-radius: 8px;
+        padding: 6px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      }
+      .theme-dropdown .theme-menu[hidden] {
+        display: none;
+      }
+      .theme-dropdown .theme-menu button {
+        background: transparent !important;
+        border: 0 !important;
+        text-align: left;
+        color: var(--fg);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .theme-dropdown .theme-menu button i,
+      .theme-dropdown .theme-menu button iconify-icon {
+        color: var(--fg);
+        width: 18px;
+        height: 18px;
+        display: inline-block;
+        vertical-align: middle;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .theme-dropdown .theme-menu button:hover {
+        background: rgba(0, 0, 0, 0.04);
+      }
+
+      /* force GitHub icon to follow theme color and be visible */
+      .gh {
+        color: var(--fg) !important;
+      }
+      .gh svg {
+        fill: currentColor !important;
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        vertical-align: middle;
+      }
+
       .logo {
         font-weight: 700;
         color: var(--fg);
@@ -132,17 +270,20 @@
         display: inline-block;
       }
       .collage {
-        position: relative;
-        height: 110px;
+        display: block;
+        max-width: 420px;
+        width: 100%;
+        height: auto;
+        margin: 0 auto 12px;
       }
-      .collage i {
-        position: absolute;
-        width: 96px;
-        height: 84px;
-        top: 10px;
-        box-shadow: 0 4px 12px #0003;
+      .collage img,
+      .collage {
+        width: 100%;
+        height: auto;
+        display: block;
       }
       .steps {
+        counter-reset: step;
         display: flex;
         gap: 12px;
         flex-wrap: wrap;
@@ -152,16 +293,50 @@
         margin: 34px 0 0;
       }
       .steps li {
+        counter-increment: step;
         background: var(--card);
         padding: 12px 16px;
         border-radius: 10px;
         font-size: 0.92rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 180px;
+      }
+      .steps li::before {
+        content: counter(step);
+        background: var(--accent);
+        color: #fff;
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+      @media (max-width: 600px) {
+        .steps {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+          margin-top: 18px;
+        }
+        .steps li {
+          min-width: auto;
+          padding: 12px;
+        }
       }
       .grid {
         display: grid;
         grid-template-columns: minmax(0, 370px) minmax(0, 1fr);
         gap: 20px;
         align-items: start;
+      }
+      /* stack preview on top when the grid has the stack modifier */
+      .grid.grid--stack {
+        grid-template-columns: 1fr;
       }
       @media (max-width: 820px) {
         .grid {
@@ -197,19 +372,91 @@
       .nrow {
         display: grid;
         grid-template-columns: 1fr auto;
-        gap: 6px;
+        gap: 8px;
         align-items: start;
       }
-      .nrow .a {
-        grid-column: 1;
+      @media (min-width: 700px) {
+        .nrow {
+          grid-template-columns: 40px 140px 1fr 48px;
+          align-items: center;
+        }
+        .nrow .drag-handle {
+          grid-column: 1;
+        }
+        .nrow .a {
+          grid-column: 2;
+          margin: 0;
+        }
+        .nrow .t {
+          grid-column: 3;
+          margin: 0;
+        }
+        .nrow .controls {
+          grid-column: 4;
+          grid-row: 1 / 2;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 6px;
+        }
+        .nrow .controls .x {
+          padding: 6px;
+          min-width: 34px;
+          height: 34px;
+          box-sizing: border-box;
+        }
+        .nrow .drag-handle {
+          background: transparent;
+          border: 0;
+          cursor: grab;
+          font-size: 16px;
+          color: var(--fg);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 6px;
+          min-width: 34px;
+          height: 34px;
+          box-sizing: border-box;
+        }
+        .nrow .drag-handle:active {
+          cursor: grabbing;
+        }
+        .nrow.dragging {
+          opacity: 0.6;
+        }
+        .nrow.placeholder {
+          border: 1px dashed rgba(0, 0, 0, 0.06);
+          background: rgba(0, 0, 0, 0.02);
+          min-height: 48px;
+          border-radius: 8px;
+        }
       }
-      .nrow .t {
-        grid-column: 1;
-      }
-      .nrow .x {
-        grid-column: 2;
-        grid-row: 1/3;
-        padding: 8px 10px;
+      /* Mobile: stack author above message */
+      @media (max-width: 699px) {
+        .nrow {
+          grid-template-columns: 1fr auto;
+        }
+        .nrow .a,
+        .nrow .t {
+          grid-column: 1;
+        }
+        .nrow .controls {
+          grid-column: 2;
+          grid-row: 1/3;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          align-items: flex-end;
+        }
+        .nrow .controls .x,
+        .nrow .controls .drag-handle {
+          padding: 8px 10px;
+        }
+        .nrow .drag-handle {
+          grid-column: 2;
+          font-size: 16px;
+        }
       }
       .pv {
         display: flex;
@@ -221,61 +468,202 @@
       #cv {
         touch-action: none;
       }
+
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      /* semantic nav layout helpers */
+      .nav-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+      }
+      .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 0;
+      }
+
+      @media (max-width: 600px) {
+        .hero {
+          padding: 18px 8px;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        button,
+        a.btn {
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .pv {
+          width: 100%;
+        }
+        #music-controls {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 8px;
+        }
+        #music-options {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+        }
+        .gh {
+          position: static;
+          margin-left: auto;
+          transform: none;
+          top: auto;
+          right: auto;
+        }
+        .collage {
+          display: block;
+          max-width: 320px;
+          margin: 0 auto 8px;
+        }
+        /* using a single SVG image for collage on all sizes */
+        .hero h1 {
+          font-size: clamp(1.6rem, 6vw, 2.4rem);
+        }
+        canvas {
+          max-width: 100%;
+          height: auto;
+          aspect-ratio: 16/9;
+        }
+      }
     </style>
   </head>
   <body>
-    <header class="top">
-      <a href="#" class="logo" id="logo">📝 Farewell Wall</a>
-    </header>
-    <main>
+    <nav class="top container" role="navigation" aria-label="Primary">
+      <div class="nav-inner">
+        <div class="nav-left">
+          <a href="#" class="logo" id="logo"
+            ><iconify-icon icon="ic:baseline-waving-hand"></iconify-icon>
+            Farewell Wall</a
+          >
+        </div>
+        <div class="nav-right">
+          <a
+            class="gh"
+            href="https://github.com/bhola-kr-200"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub: bhola-kr-200"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"
+              />
+            </svg>
+          </a>
+          <div
+            id="theme-select"
+            class="theme-dropdown"
+            aria-label="Theme preference"
+          >
+            <button
+              class="theme-btn"
+              type="button"
+              aria-haspopup="true"
+              aria-expanded="false"
+              title="Theme"
+            >
+              <iconify-icon
+                icon="bi:circle-half"
+                width="18"
+                height="18"
+                style="color: inherit"
+              ></iconify-icon>
+            </button>
+            <div
+              class="theme-menu"
+              role="menu"
+              hidden
+              style="
+                position: absolute;
+                right: 0;
+                top: 110%;
+                min-width: 120px;
+                z-index: 50;
+              "
+            >
+              <button role="menuitem" type="button" data-val="auto">
+                <iconify-icon
+                  icon="bi:circle-half"
+                  width="18"
+                  height="18"
+                ></iconify-icon
+                ><span>Auto</span>
+              </button>
+              <button role="menuitem" type="button" data-val="light">
+                <iconify-icon
+                  icon="bi:sun-fill"
+                  width="18"
+                  height="18"
+                ></iconify-icon
+                ><span>Light</span>
+              </button>
+              <button role="menuitem" type="button" data-val="dark">
+                <iconify-icon
+                  icon="bi:moon-stars-fill"
+                  width="18"
+                  height="18"
+                ></iconify-icon
+                ><span>Dark</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container">
       <section id="home" class="view">
         <div class="hero">
-          <div class="collage">
-            <i
-              style="
-                left: calc(50% - 250px);
-                background: #fff176;
-                transform: rotate(-8deg);
-              "
-            ></i
-            ><i
-              style="
-                left: calc(50% - 150px);
-                top: 30px;
-                background: #ff9ecb;
-                transform: rotate(5deg);
-              "
-            ></i
-            ><i
-              style="
-                left: calc(50% - 48px);
-                background: #8fd3ff;
-                transform: rotate(-3deg);
-              "
-            ></i
-            ><i
-              style="
-                left: calc(50% + 55px);
-                top: 28px;
-                background: #b9f6a1;
-                transform: rotate(7deg);
-              "
-            ></i
-            ><i
-              style="
-                left: calc(50% + 150px);
-                background: #ffc27a;
-                transform: rotate(-6deg);
-              "
-            ></i>
-          </div>
+          <img
+            src="img/sticky_note_collage.svg"
+            class="collage"
+            alt="Sticky notes collage"
+            aria-hidden="true"
+          />
           <h1>Say goodbye in style</h1>
           <p>
             Turn your team's messages into an animated whiteboard video with
             sticky notes, pop sounds and slow zooms. Everything is made in your
             browser, nothing is uploaded.
           </p>
-          <a class="btn big" href="#" id="go">Create yours →</a>
+          <a class="btn big" href="#" id="go"
+            >Create yours
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 16 16"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M6 3a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+              <path d="M9 6a3 3 0 1 1 0-6 3 3 0 0 1 0 6" />
+              <path
+                d="M9 6h.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 7.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 16H2a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"
+              /></svg
+          ></a>
           <ol class="steps">
             <li>1. Add your colleague's name</li>
             <li>2. Add the team's messages</li>
@@ -283,74 +671,192 @@
           </ol>
         </div>
       </section>
+
       <section id="create" class="view" hidden>
-        <div class="grid">
-          <div class="panel">
-            <h2>Who is leaving?</h2>
+        <div class="grid grid--stack" style="gap: 20px; align-items: start">
+          <section class="panel pv" style="min-width: 300px">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+              "
+            >
+              <h2 style="margin: 0">Preview</h2>
+              <div style="display: flex; gap: 8px; align-items: center">
+                <button id="stop" class="sec" hidden>
+                  <iconify-icon icon="bi:stop-fill"></iconify-icon> Stop
+                </button>
+                <button id="play">
+                  <iconify-icon icon="bi:play-fill"></iconify-icon> Preview
+                </button>
+                <button id="shuf" class="sec">
+                  <iconify-icon icon="bi:shuffle"></iconify-icon> Shuffle
+                </button>
+              </div>
+            </div>
+
+            <canvas id="cv" width="1280" height="720"></canvas>
+
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-top: 10px;
+              "
+            >
+              <div
+                id="music-controls"
+                style="display: flex; align-items: center; gap: 12px"
+              >
+                <div
+                  class="select-wrap"
+                  style="
+                    min-width: 160px;
+                    position: relative;
+                    background: var(--card);
+                    border: 1px solid #8886;
+                    border-radius: 8px;
+                    overflow: hidden;
+                  "
+                >
+                  <select
+                    id="snd"
+                    title="Sound style"
+                    style="
+                      -webkit-appearance: none;
+                      -moz-appearance: none;
+                      appearance: none;
+                      background: transparent;
+                      border: 0;
+                      padding: 8px 36px 8px 12px;
+                      width: 100%;
+                      color: var(--fg);
+                      font: inherit;
+                      cursor: pointer;
+                    "
+                  >
+                    <option value="stick">Paper stick + marker</option>
+                    <option value="bubble">Bubble pop</option>
+                    <option value="tick">Soft click</option>
+                    <option value="melody">Musical notes</option>
+                  </select>
+                  <iconify-icon
+                    class="select-arrow"
+                    icon="mdi:chevron-down"
+                    width="18"
+                    height="18"
+                    style="
+                      position: absolute;
+                      right: 10px;
+                      top: 50%;
+                      transform: translateY(-50%);
+                      pointer-events: none;
+                      color: var(--fg);
+                    "
+                  ></iconify-icon>
+                </div>
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 0.9rem;
+                  "
+                >
+                  Vol
+                  <input
+                    id="music-vol"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value="0.6"
+                    style="width: 110px; margin-left: 6px"
+                  />
+                </label>
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 0.9rem;
+                  "
+                >
+                  <input type="checkbox" id="mus" checked style="width: auto" />
+                  Music
+                </label>
+              </div>
+
+              <div
+                style="
+                  margin-left: auto;
+                  display: flex;
+                  gap: 8px;
+                  flex-wrap: wrap;
+                "
+              >
+                <button id="rec">
+                  <iconify-icon
+                    icon="bi:file-earmark-arrow-down-fill"
+                  ></iconify-icon>
+                  Generate &amp; download
+                </button>
+                <a
+                  id="dl"
+                  class="btn"
+                  style="display: none"
+                  download="farewell.mp4"
+                  >Save video</a
+                >
+              </div>
+            </div>
+
+            <div
+              id="st"
+              style="margin-top: 8px; font-size: 0.95rem; opacity: 0.85"
+            >
+              Preview plays with sound. Generating records in real time (about
+              40 seconds) and downloads a WebM file.
+            </div>
+          </section>
+
+          <aside class="panel" style="min-width: 280px">
+            <h2>Who's leaving?</h2>
             <input
               id="nm"
               maxlength="30"
               placeholder="Colleague name"
               value="Rahul Sharma"
             />
-            <h2>Messages from the team</h2>
-            <div
-              id="nl"
-              style="display: flex; flex-direction: column; gap: 10px"
-            ></div>
-            <div class="row" style="justify-content: flex-start">
-              <button class="sec" id="add">+ Add note</button
-              ><button class="sec" id="clr">Clear all</button>
-            </div>
-            <h2>Final message (center note)</h2>
+
+            <h2 style="margin-top: 12px">Final message (center note)</h2>
             <input
               id="fin"
               maxlength="60"
               value="We will miss you, Rahul! 💛"
             />
-          </div>
-          <div class="pv">
-            <canvas id="cv" width="1280" height="720"></canvas>
-            <div style="font-size: 0.85rem; opacity: 0.75">
-              Tip: drag the sticky notes on the preview to arrange them your
-              way.
+
+            <h2 style="margin-top: 12px">Team messages</h2>
+            <p style="margin: 6px 0 10px; font-size: 0.92rem; opacity: 0.8">
+              Add up to 10 messages. Use the ✕ button to remove a message.
+            </p>
+            <div
+              id="nl"
+              style="display: flex; flex-direction: column; gap: 10px"
+            ></div>
+
+            <div
+              class="row"
+              style="justify-content: flex-start; gap: 8px; margin-top: 8px"
+            >
+              <button class="sec" id="add">+ Add message</button>
+              <button class="sec" id="clr">Clear all</button>
             </div>
-            <div class="row">
-              <button id="play">▶ Preview</button
-              ><button id="shuf" class="sec">🔀 Shuffle layout</button
-              ><select id="snd" title="Sound style" style="width: auto">
-                <option value="stick">Paper stick + marker</option>
-                <option value="bubble">Bubble pop</option>
-                <option value="tick">Soft click</option>
-                <option value="melody">Musical notes</option></select
-              ><label
-                style="
-                  font-size: 0.85rem;
-                  display: flex;
-                  align-items: center;
-                  gap: 4px;
-                "
-                ><input
-                  type="checkbox"
-                  id="mus"
-                  checked
-                  style="width: auto"
-                />Music</label
-              ><button id="stop" class="sec" hidden>■ Stop</button
-              ><button id="rec">⬇ Generate &amp; download</button
-              ><a
-                id="dl"
-                class="btn"
-                style="display: none"
-                download="farewell.webm"
-                >Save video</a
-              >
-            </div>
-            <div id="st">
-              Preview plays with sound. Generating records in real time (about
-              40 seconds) and downloads a WebM file.
-            </div>
-          </div>
+          </aside>
         </div>
       </section>
     </main>
@@ -849,8 +1355,12 @@
           bus = ac.createGain(),
           dly = ac.createDelay(),
           fb = ac.createGain(),
-          k = $("snd").value;
-        bus.gain.value = 0.6;
+          k = selectedSound;
+        bus.gain.value = parseFloat(
+          (document.getElementById("music-vol") &&
+            document.getElementById("music-vol").value) ||
+            0.6,
+        );
         dly.delayTime.value = 0.23;
         fb.gain.value = 0.22;
         curNodes = [bus, dly];
@@ -901,7 +1411,8 @@
       let raf = 0,
         running = false,
         recorder = null,
-        chunks = [];
+        chunks = [],
+        recorderMime = null;
       const stopB = document.getElementById("stop"),
         playB = document.getElementById("play"),
         recB = document.getElementById("rec"),
@@ -910,9 +1421,9 @@
       function run(record) {
         if (running) return;
         running = true;
-        playB.disabled = recB.disabled = true;
+        recB.disabled = true;
         document.getElementById("shuf").disabled = true;
-        stopB.hidden = false;
+        if (stopB) stopB.hidden = true;
         dl.style.display = "none";
         ac = ac || new (window.AudioContext || window.webkitAudioContext)();
         ac.resume();
@@ -921,25 +1432,45 @@
           try {
             const s = cv.captureStream(30);
             dest.stream.getAudioTracks().forEach((tr) => s.addTrack(tr));
-            const mt = [
+            // try mp4 first, then webm fallbacks
+            const mCandidates = [
+              'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
               "video/webm;codecs=vp9,opus",
               "video/webm;codecs=vp8,opus",
               "video/webm",
-            ].find((m) => MediaRecorder.isTypeSupported(m));
+            ];
+            const chosen =
+              typeof MediaRecorder !== "undefined" &&
+              MediaRecorder.isTypeSupported
+                ? mCandidates.find((m) => MediaRecorder.isTypeSupported(m))
+                : null;
+            recorderMime =
+              chosen ||
+              mCandidates.find((m) => m.indexOf("webm") >= 0) ||
+              "video/webm";
             recorder = new MediaRecorder(s, {
-              mimeType: mt,
+              mimeType: recorderMime,
               videoBitsPerSecond: 6e6,
             });
             chunks = [];
             recorder.ondataavailable = (e) =>
               e.data.size && chunks.push(e.data);
             recorder.onstop = () => {
+              const outType =
+                (recorder && recorder.mimeType) || recorderMime || "video/webm";
               dl.href = URL.createObjectURL(
-                new Blob(chunks, { type: "video/webm" }),
+                new Blob(chunks, { type: outType }),
               );
               dl.style.display = "";
               st.textContent = 'Done! Click "Save video" to download.';
+              const ext = outType.indexOf("mp4") >= 0 ? ".mp4" : ".webm";
+              dl.download = "farewell" + ext;
               dl.click();
+              // ensure UI restored after download
+              playB.disabled = false;
+              playB.innerHTML =
+                '<iconify-icon icon="bi:play-fill" ></iconify-icon> Preview';
+              playB.classList.remove("sec");
             };
             recorder.start();
           } catch (e) {
@@ -952,6 +1483,11 @@
         scheduleSounds();
         const t0 = performance.now();
         st.textContent = record ? "Recording in real time…" : "Playing…";
+        // make the play button act as Stop while running
+        playB.disabled = false;
+        playB.innerHTML =
+          '<iconify-icon icon="bi:stop-fill" ></iconify-icon> Stop';
+        playB.classList.add("sec");
         (function f() {
           const t = (performance.now() - t0) / 1000;
           render(t);
@@ -959,8 +1495,13 @@
             raf = requestAnimationFrame(f);
           } else {
             running = false;
-            playB.disabled = recB.disabled = false;
+            recB.disabled = false;
+            playB.disabled = false;
             document.getElementById("shuf").disabled = false;
+            // restore play button UI
+            playB.innerHTML =
+              '<iconify-icon icon="bi:play-fill" ></iconify-icon> Preview';
+            playB.classList.remove("sec");
             stopB.hidden = true;
             if (recorder) {
               setTimeout(() => {
@@ -995,14 +1536,17 @@
           } catch (e) {}
           recorder = null;
         }
-        playB.disabled = recB.disabled = false;
+        playB.disabled = false;
+        recB.disabled = false;
         document.getElementById("shuf").disabled = false;
+        playB.innerHTML =
+          '<iconify-icon icon="bi:play-fill" ></iconify-icon> Preview';
+        playB.classList.remove("sec");
         stopB.hidden = true;
         st.textContent = "Stopped.";
         still();
       }
       stopB.onclick = stopAll;
-      playB.onclick = () => run(false);
       recB.onclick = () => run(true);
       // ---- init ----
       layoutNotes();
@@ -1023,6 +1567,9 @@
       // ---- website ----
       const $ = (id) => document.getElementById(id),
         nl = $("nl");
+      let listDragEl = null,
+        listDragStartIndex = -1,
+        listPlaceholder = null;
       function go(v) {
         stopAll();
         $("home").hidden = v === "create";
@@ -1043,10 +1590,16 @@
         const d = document.createElement("div");
         d.className = "nrow";
         d.innerHTML =
-          '<input class="a" maxlength="24" placeholder="From (optional)"><textarea class="t" rows="2" maxlength="120" placeholder="Message"></textarea><button class="sec x" title="Remove">✕</button>';
+          '<button draggable="true" class="ter drag-handle" title="Drag to reorder" aria-label="Drag to reorder">☰</button>' +
+          '<input class="a" maxlength="24" placeholder="From (optional)">' +
+          '<textarea class="t" rows="2" maxlength="120" placeholder="Message"></textarea>' +
+          '<div class="controls"><div style="display:flex;gap:6px;align-items:center">' +
+          '<button class="sec x" title="Remove">✕</button>' +
+          "</div></div>";
         d.querySelector(".a").value = a;
         d.querySelector(".t").value = t;
-        d.querySelector(".x").onclick = () => {
+        const rm = d.querySelector(".x");
+        rm.onclick = () => {
           if (nl.children.length > 1) {
             custom.splice([...nl.children].indexOf(d), 1);
             d.remove();
@@ -1054,8 +1607,102 @@
           }
         };
         nl.appendChild(d);
+        // drag handle events
+        const dragHandle = d.querySelector(".drag-handle");
+        if (dragHandle) {
+          dragHandle.addEventListener("dragstart", (e) => {
+            listDragEl = d;
+            listDragStartIndex = [...nl.children].indexOf(d);
+            d.classList.add("dragging");
+            try {
+              e.dataTransfer.setData("text/plain", "");
+            } catch (e) {}
+            e.dataTransfer.effectAllowed = "move";
+            if (e.dataTransfer.setDragImage) {
+              const crt = d.cloneNode(true);
+              crt.style.position = "absolute";
+              crt.style.top = "-9999px";
+              document.body.appendChild(crt);
+              e.dataTransfer.setDragImage(crt, 10, 10);
+              setTimeout(() => document.body.removeChild(crt), 0);
+            }
+          });
+          dragHandle.addEventListener("dragend", () => {
+            d.classList.remove("dragging");
+            if (listPlaceholder) {
+              listPlaceholder.remove();
+              listPlaceholder = null;
+            }
+            listDragEl = null;
+            listDragStartIndex = -1;
+          });
+        }
+        // better UX: focus the message textarea and bring it into view
+        const ta = d.querySelector(".t");
+        if (ta) {
+          ta.focus();
+          ta.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
         $("add").disabled = nl.children.length >= 10;
       }
+
+      // drag reorder for message rows
+      (function () {
+        function getDragAfterElement(container, y) {
+          const children = [
+            ...container.querySelectorAll(
+              ".nrow:not(.dragging):not(.placeholder)",
+            ),
+          ];
+          for (const child of children) {
+            const box = child.getBoundingClientRect();
+            const center = box.top + box.height / 2;
+            if (y < center) return child;
+          }
+          return null;
+        }
+        nl.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          if (!listDragEl) return;
+          if (!listPlaceholder) {
+            listPlaceholder = document.createElement("div");
+            listPlaceholder.className = "nrow placeholder";
+            listPlaceholder.style.minHeight =
+              (listDragEl.offsetHeight || 48) + "px";
+            listPlaceholder.style.border = "1px dashed rgba(0,0,0,0.08)";
+            listPlaceholder.style.background = "rgba(0,0,0,0.02)";
+            listPlaceholder.style.borderRadius = "8px";
+          }
+          const after = getDragAfterElement(nl, e.clientY);
+          if (after == null) nl.appendChild(listPlaceholder);
+          else nl.insertBefore(listPlaceholder, after);
+        });
+        nl.addEventListener("drop", (e) => {
+          e.preventDefault();
+          if (!listDragEl) return;
+          if (listPlaceholder) {
+            nl.insertBefore(listDragEl, listPlaceholder);
+            listPlaceholder.remove();
+            listPlaceholder = null;
+            const newIndex = [...nl.children].indexOf(listDragEl);
+            if (
+              Array.isArray(custom) &&
+              listDragStartIndex >= 0 &&
+              listDragStartIndex < custom.length
+            ) {
+              const item = custom.splice(listDragStartIndex, 1)[0];
+              custom.splice(newIndex, 0, item);
+            }
+            applyData();
+          }
+          if (listDragEl) listDragEl.classList.remove("dragging");
+          listDragEl = null;
+          listDragStartIndex = -1;
+        });
+        document.addEventListener("dragover", (e) => e.preventDefault());
+        document.addEventListener("drop", (e) => e.preventDefault());
+      })();
+
       function applyData() {
         if (running) return;
         const notes = [...nl.children]
@@ -1101,11 +1748,33 @@
         return true;
       };
       playB.onclick = () => {
-        if (ready()) run(false);
+        if (running) {
+          stopAll();
+          return;
+        }
+        if (!ready()) return;
+        run(false);
       };
       recB.onclick = () => {
         if (ready()) run(true);
       };
+
+      // ---- music UI ----
+      let selectedSound = "stick";
+      (function () {
+        const sel = document.getElementById("snd");
+        const volEl = document.getElementById("music-vol");
+        if (!sel) return;
+        function applySel(k) {
+          selectedSound = k;
+          try {
+            sel.value = k;
+          } catch (e) {}
+        }
+        sel.addEventListener("change", () => applySel(sel.value));
+        // music preview button removed — keep initial selection
+        applySel(sel.value || selectedSound);
+      })();
 
       // ---- drag to arrange ----
       let drag = -1,
@@ -1158,6 +1827,141 @@
       };
       cv.addEventListener("pointerup", endDrag);
       cv.addEventListener("pointercancel", endDrag);
+
+      // ---- theme selector (light/dark/auto) ----
+      (function () {
+        const KEY = "themePref",
+          sel = document.getElementById("theme-select");
+        const ICONS = {
+          auto: "bi:circle-half",
+          light: "bi:sun-fill",
+          dark: "bi:moon-stars-fill",
+        };
+        function applyTheme(v) {
+          try {
+            if (v === "light")
+              document.documentElement.setAttribute("data-theme", "light");
+            else if (v === "dark")
+              document.documentElement.setAttribute("data-theme", "dark");
+            else document.documentElement.removeAttribute("data-theme");
+          } catch (e) {}
+        }
+        function setActive(v) {
+          if (!sel) return;
+          if (sel.tagName === "SELECT") {
+            try {
+              sel.value = v;
+            } catch (e) {}
+          } else {
+            const btns = Array.from(sel.querySelectorAll("[data-val]"));
+            btns.forEach((b) =>
+              b.setAttribute(
+                "aria-pressed",
+                b.getAttribute("data-val") === v ? "true" : "false",
+              ),
+            );
+            // update main icon + title
+            const mainBtn = sel.querySelector(".theme-btn");
+            try {
+              const mainIcon = mainBtn && mainBtn.querySelector("iconify-icon");
+              const name = ICONS[v] || ICONS.auto;
+              if (mainIcon) mainIcon.setAttribute("icon", name);
+              if (mainBtn)
+                mainBtn.setAttribute(
+                  "title",
+                  "Theme: " + (v.charAt(0).toUpperCase() + v.slice(1)),
+                );
+            } catch (e) {}
+          }
+        }
+        // init
+        const stored =
+          typeof localStorage !== "undefined"
+            ? localStorage.getItem(KEY)
+            : null;
+        if (sel) {
+          if (sel.tagName === "SELECT") {
+            sel.value = stored || "auto";
+            sel.addEventListener("change", () => {
+              const v = sel.value;
+              try {
+                localStorage.setItem(KEY, v);
+              } catch (e) {}
+              setActive(v);
+              applyTheme(v);
+            });
+            setActive(stored || "auto");
+          } else {
+            const btns = Array.from(sel.querySelectorAll("[data-val]"));
+            const mainBtn = sel.querySelector(".theme-btn");
+            const menu = sel.querySelector(".theme-menu");
+            btns.forEach((b) =>
+              b.addEventListener("click", (ev) => {
+                const v = b.getAttribute("data-val");
+                try {
+                  localStorage.setItem(KEY, v);
+                } catch (e) {}
+                setActive(v);
+                applyTheme(v);
+                // close dropdown
+                if (menu) menu.hidden = true;
+                if (mainBtn) mainBtn.setAttribute("aria-expanded", "false");
+                ev.stopPropagation();
+              }),
+            );
+            // keyboard support (left/right)
+            sel.addEventListener("keydown", (e) => {
+              if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                e.preventDefault();
+                const btns = Array.from(sel.querySelectorAll("[data-val]"));
+                const idx = btns.findIndex(
+                  (x) => x.getAttribute("aria-pressed") === "true",
+                );
+                let next = idx;
+                if (e.key === "ArrowRight")
+                  next = Math.min(btns.length - 1, idx + 1);
+                else next = Math.max(0, idx - 1);
+                btns[next].focus();
+                btns[next].click();
+              }
+            });
+            setActive(stored || "auto");
+          }
+        }
+        applyTheme(stored || "auto");
+        // react to system changes when in auto
+        try {
+          const mq = window.matchMedia("(prefers-color-scheme: dark)");
+          if (mq && mq.addEventListener) {
+            mq.addEventListener("change", () => {
+              const cur =
+                typeof localStorage !== "undefined"
+                  ? localStorage.getItem(KEY)
+                  : null;
+              if (!cur || cur === "auto") applyTheme("auto");
+            });
+          }
+        } catch (e) {}
+
+        // dropdown toggle handling when using the dropdown variant
+        if (sel && sel.classList && sel.classList.contains("theme-dropdown")) {
+          const btn = sel.querySelector(".theme-btn");
+          const menu = sel.querySelector(".theme-menu");
+          if (btn && menu) {
+            btn.addEventListener("click", () => {
+              const open = btn.getAttribute("aria-expanded") === "true";
+              btn.setAttribute("aria-expanded", open ? "false" : "true");
+              menu.hidden = open ? true : false;
+            });
+            document.addEventListener("click", (e) => {
+              if (!sel.contains(e.target)) {
+                btn.setAttribute("aria-expanded", "false");
+                menu.hidden = true;
+              }
+            });
+          }
+        }
+      })();
     </script>
   </body>
 </html>

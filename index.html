@@ -1418,6 +1418,20 @@
         curNodes = [];
       }
 
+      function restoreUI(status) {
+        // centralize UI restoration after playback/recording stops
+        try {
+          recB.disabled = false;
+          playB.disabled = false;
+          const shuf = document.getElementById("shuf");
+          if (shuf) shuf.disabled = false;
+          playB.innerHTML = '<iconify-icon icon="bi:play-fill" ></iconify-icon> Preview';
+          playB.classList.remove("sec");
+          if (stopB) stopB.hidden = true;
+          if (typeof status !== "undefined" && st) st.textContent = status;
+        } catch (e) {}
+      }
+
       function scheduleSounds() {
         if (!ac) return;
         // stop any previous audio nodes and music source
@@ -1556,11 +1570,9 @@
             // stop any playing music and scheduled nodes
             stopAudio();
 
-            // restore play button UI
-            playB.innerHTML =
-              '<iconify-icon icon="bi:play-fill" ></iconify-icon> Preview';
-            playB.classList.remove("sec");
-            stopB.hidden = true;
+            // restore UI
+            restoreUI();
+
             if (recorder) {
               setTimeout(() => {
                 recorder.stop();
@@ -1592,14 +1604,8 @@
           } catch (e) {}
           recorder = null;
         }
-        playB.disabled = false;
-        recB.disabled = false;
-        document.getElementById("shuf").disabled = false;
-        playB.innerHTML =
-          '<iconify-icon icon="bi:play-fill" ></iconify-icon> Preview';
-        playB.classList.remove("sec");
-        stopB.hidden = true;
-        st.textContent = "Stopped.";
+        // restore UI and show stopped status
+        restoreUI("Stopped.");
         still();
       }
       stopB.onclick = stopAll;

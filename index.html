@@ -1773,10 +1773,57 @@
           return;
         }
         if (!ready()) return;
+        // ensure chosen music is decoded before starting preview
+        const sel = document.getElementById("music-select");
+        const chosen = sel && sel.value ? sel.value : "none";
+        if (chosen && chosen !== "none" && !musicBuffers[chosen]) {
+          try {
+            st.textContent = "Loading music… Please wait before previewing.";
+          } catch (e) {}
+          // start background decode; notify when ready
+          loadMusic(chosen)
+            .then(() => {
+              try {
+                st.textContent = "Music ready. Starting preview…";
+              } catch (e) {}
+              // small delay so UI updates before heavy work
+              setTimeout(() => run(false), 120);
+            })
+            .catch((err) => {
+              console.warn("music load failed", err);
+              try {
+                st.textContent = "Music failed to load. Preview cancelled.";
+              } catch (e) {}
+            });
+          return;
+        }
         run(false);
       };
       recB.onclick = () => {
-        if (ready()) run(true);
+        if (!ready()) return;
+        // for recording, also ensure music is ready before starting
+        const sel = document.getElementById("music-select");
+        const chosen = sel && sel.value ? sel.value : "none";
+        if (chosen && chosen !== "none" && !musicBuffers[chosen]) {
+          try {
+            st.textContent = "Loading music… Please wait before recording.";
+          } catch (e) {}
+          loadMusic(chosen)
+            .then(() => {
+              try {
+                st.textContent = "Music ready. Starting recording…";
+              } catch (e) {}
+              setTimeout(() => run(true), 120);
+            })
+            .catch((err) => {
+              console.warn("music load failed", err);
+              try {
+                st.textContent = "Music failed to load. Recording cancelled.";
+              } catch (e) {}
+            });
+          return;
+        }
+        run(true);
       };
 
       // ---- music UI ----

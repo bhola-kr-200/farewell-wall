@@ -1447,6 +1447,7 @@
         if (!chosen || chosen === "none") return;
         const buf = musicBuffers[chosen];
         if (buf) {
+          // play decoded buffer immediately
           const g = ac.createGain();
           g.gain.value = vol;
           const src = ac.createBufferSource();
@@ -1460,10 +1461,41 @@
           musicSource = src;
           curNodes.push(src, g);
         } else {
-          // load then play when ready
+          // Buffer not ready: provide a low-volume oscillator as audible feedback
+          // and start fetching the track. When load completes, scheduleSounds()
+          // will run again and swap in the decoded buffer.
+          try {
+            st.textContent = "Loading music…";
+          } catch (e) {}
+          // create a subtle ambient oscillator so users hear something
+          try {
+            const g = ac.createGain();
+            // low level so it doesn't clash with final music
+            g.gain.value = Math.max(0.0001, vol * 0.06);
+            const osc = ac.createOscillator();
+            osc.type = "sine";
+            osc.frequency.value = 220 * (0.9 + (Math.random() - 0.5) * 0.2);
+            osc.connect(g);
+            g.connect(ac.destination);
+            if (dest) g.connect(dest);
+            osc.start();
+            curNodes.push(osc, g);
+          } catch (e) {
+            console.warn("osc fallback failed", e);
+          }
+
           loadMusic(chosen)
-            .then(() => scheduleSounds())
-            .catch((e) => console.warn("music load error", e));
+            .then(() => {
+              // once decoded, stop fallback and start real music
+              stopAudio();
+              scheduleSounds();
+            })
+            .catch((e) => {
+              console.warn("music load error", e);
+              try {
+                st.textContent = "Music failed to load.";
+              } catch (e) {}
+            });
         }
       }
 

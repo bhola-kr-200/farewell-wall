@@ -18,7 +18,7 @@
         --bg: #f4f4f1;
         --fg: #222;
         --card: #fff;
-        --accent: #2f6fed;
+        --accent: #6c9bff;
         box-sizing: border-box;
         padding-top: env(safe-area-inset-top, 0px);
         padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -75,6 +75,9 @@
         justify-content: center;
       }
       /* Buttons: rely on Picnic CSS for default button styles; custom rules removed to reduce inline CSS */
+      button {
+        background: var(--accent);
+      }
       button.sec {
         background: var(--card);
         color: var(--fg);
@@ -331,7 +334,7 @@
         padding: 16px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 1px;
       }
       .panel h2 {
         font-size: 1rem;
@@ -486,6 +489,9 @@
           aspect-ratio: 16/9;
         }
       }
+      input[type="range"] {
+        accent-color: var(--accent);
+      }
     </style>
   </head>
   <body>
@@ -592,7 +598,7 @@
             sticky notes, pop sounds and slow zooms. Everything is made in your
             browser, nothing is uploaded.
           </p>
-          <a class="button" href="#" id="go" style="font-size: 1.5em">Create yours
+          <a class="button" href="#" id="go" style="font-size: 1.5em; background: var(--accent);">Create yours
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -803,15 +809,22 @@
               value="Person Name"
             />
 
-            <h2 style="margin-top: 12px">Final message (center note)</h2>
+            <h2 style="margin-top: 5px">Final message (center note)</h2>
             <input
               id="fin"
               maxlength="60"
               value="We will miss you, Person Name! 💛"
             />
 
-            <h2 style="margin-top: 12px">Team messages</h2>
-            <p style="margin: 6px 0 10px; font-size: 0.92rem; opacity: 0.8">
+            <h2 style="margin-top: 5px">Profile picture (optional)</h2>
+            <input type="file" id="userPic" accept="image/*">
+            <div style="margin-top:8px; display:flex; align-items:center; gap:10px;">
+              <img id="preview" alt="Profile preview" style="display:none; width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid rgba(0,0,0,0.08)"/>
+              <small style="opacity:0.8">Optional — shown on the final note</small>
+            </div>
+
+            <h2 style="margin-top: 5px">Team messages</h2>
+            <p style="margin: 6px 0 6px; font-size: 0.92rem; opacity: 0.8">
               Add up to 10 messages. Use the ✕ button to remove a message.
             </p>
             <div
@@ -821,16 +834,54 @@
 
             <div
               class="row"
-              style="justify-content: flex-start; gap: 8px; margin-top: 8px"
+              style="justify-content: flex-start; gap: 2px; margin-top: 8px"
             >
-              <button class="sec" id="add">+ Add message</button>
+              <button class="sec" id="add"><iconify-icon icon="bi:plus-lg" ></iconify-icon> Add message</button>
               <button class="sec" id="clr">Clear all</button>
             </div>
           </aside>
         </div>
       </section>
     </main>
+
     <script>
+
+      // profile picture handling: read file as data URL and keep in memory
+      let userPicData = null;
+      const userPicImg = new Image();
+
+      document.getElementById('userPic').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    userPicData = e.target.result;
+                    try {
+                      userPicImg.src = userPicData;
+                    } catch (err) {}
+                    const previewImg = document.getElementById('preview');
+                    if (previewImg) {
+                      previewImg.src = userPicData;
+                      previewImg.style.display = 'block';
+                    }
+                    // update DATA and re-render
+                    applyData();
+                }
+
+                reader.readAsDataURL(file);
+            } else {
+                // no file selected
+                userPicData = null;
+                try { userPicImg.src = ''; } catch (e) {}
+                const previewImg = document.getElementById('preview');
+                if (previewImg) previewImg.style.display = 'none';
+                applyData();
+            }
+        });
+
+
       window.addEventListener("error", (e) => {
         const s = document.getElementById("st");
         if (s)
@@ -889,8 +940,8 @@
       ];
       const NW = 200,
         NH = 150,
-        FW = 300,
-        FH = 200,
+        FW = 420,
+        FH = 260,
         FC = [640, 440];
       const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
       const ease = (x) =>
@@ -1148,6 +1199,39 @@
           fa - 0.4,
           40,
         );
+
+        // optional profile image on final note (draw as square inside the note, bottom-center)
+        try {
+          if (DATA && DATA.userPic) {
+            const img = userPicImg;
+            const imgSize = 96; // larger to fit text comfortably
+            // show image together with the final note's appearance
+            const showAge = fa; // age for final note
+            const sLocal = back(showAge / 0.35);
+            if (showAge >= 0 && sLocal > 0 && img && (img.complete || img.naturalWidth)) {
+              // draw inside the note's local coordinate space so it appears with the note
+              // note() draws the note centered at 0,0 in local space with size FW x FH
+              const localX = -imgSize / 2; // center horizontally
+              const padding = 18;
+              const localY = FH / 2 - imgSize - padding; // sit above the bottom edge with padding
+
+              c.save();
+              // apply the same translate/rotate/scale the note uses
+              c.translate(FC[0], FC[1]);
+              c.rotate(-0.03);
+              c.scale(sLocal, sLocal);
+
+              // subtle background and border behind the image (slightly larger)
+              c.fillStyle = 'rgba(0,0,0,0.06)';
+              c.fillRect(localX - 4, localY - 4, imgSize + 8, imgSize + 8);
+              c.drawImage(img, localX, localY, imgSize, imgSize);
+              c.strokeStyle = 'rgba(255,255,255,0.9)';
+              c.lineWidth = 2 / (sLocal || 1); // compensate stroke width for scale
+              c.strokeRect(localX, localY, imgSize, imgSize);
+              c.restore();
+            }
+          }
+        } catch (e) {}
         c.restore();
       }
       // ---- audio ----
@@ -1634,6 +1718,7 @@
           name: $("nm").value.trim() || "Your Colleague",
           final: $("fin").value.trim() || "We will miss you!",
           notes: notes.length ? notes : [{ a: "", t: "Good luck!" }],
+          userPic: userPicData || null,
         };
         n = DATA.notes.length;
         for (const k in cache) delete cache[k];
@@ -1654,6 +1739,10 @@
         addRow();
         $("nm").value = "";
         $("fin").value = "";
+        userPicData = null;
+        try { userPicImg.src = ""; } catch (e) {}
+        const previewImg = document.getElementById('preview');
+        if (previewImg) previewImg.style.display = 'none';
         applyData();
         $("nm").focus();
       };

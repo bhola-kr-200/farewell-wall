@@ -18,7 +18,7 @@
         --bg: #f4f4f1;
         --fg: #222;
         --card: #fff;
-        --accent: #6c9bff;
+        --accent: #567ccc;
         box-sizing: border-box;
         padding-top: env(safe-area-inset-top, 0px);
         padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -28,14 +28,14 @@
           --bg: #1c1f23;
           --fg: #eee;
           --card: #2a2e34;
-          --accent: #6c9bff;
+          --accent: #567ccc;
         }
       }
       :root[data-theme="dark"] {
         --bg: #1c1f23;
         --fg: #eee;
         --card: #2a2e34;
-        --accent: #6c9bff;
+        --accent: #567ccc;
       }
       html {
         scroll-padding-top: env(safe-area-inset-top, 0px);
@@ -789,7 +789,7 @@
                     max="1"
                     step="0.01"
                     value="0.6"
-                    style="width: 100px; margin-left: 6px"
+                    style="width: 100px; margin-left: 6px; -webkit-appearance: none"
                   />
                 </label>
 
@@ -819,6 +819,7 @@
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    background: #5d9940;
                   "
                 >
                   <iconify-icon
@@ -892,7 +893,7 @@
 
             <h2 style="margin-top: 5px">Team messages</h2>
             <p style="margin: 6px 0 6px; font-size: 0.92rem; opacity: 0.8">
-              Add up to 10 messages. Use the ✕ button to remove a message.
+              Add up to 12 messages. Use the ✕ button to remove a message.
             </p>
             <div
               id="nl"
@@ -1042,33 +1043,70 @@
         return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
       }
       function layoutNotes() {
-        const r = rng(seed),
-          cols = COLORS.slice().sort(() => r() - 0.5);
+        // simpler deterministic grid + jitter placement using the seeded RNG.
+        // Avoid expensive collision loops while keeping visually pleasing spread.
+        const r = rng(seed), cols = COLORS.slice().sort(() => r() - 0.5);
         SLOTS = [];
         TILTS = [];
         COLS = [];
-        for (let i = 0; i < n; i++) {
-          let p,
-            tries = 0,
-            sx = 170,
-            sy = 125;
-          do {
-            p = [130 + r() * 1020, 250 + r() * 350];
-            tries++;
-            if (tries % 150 == 0) {
-              sx -= 15;
-              sy -= 12;
+
+        // Compute a compact grid sized to n notes
+        const colsCount = Math.ceil(Math.sqrt(n));
+        const rows = Math.ceil(n / colsCount);
+        const padX = 130, padY = 250, usableW = 1020, usableH = 350;
+        const cellW = usableW / Math.max(1, colsCount);
+        const cellH = usableH / Math.max(1, rows);
+
+        let idx = 0;
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < colsCount && idx < n; col++, idx++) {
+            const baseX = padX + col * cellW + cellW / 2;
+            const baseY = padY + row * cellH + cellH / 2;
+            // jitter within a fraction of the cell so positions look natural
+            const jitterX = (r() - 0.5) * Math.min(60, cellW * 0.4);
+            const jitterY = (r() - 0.5) * Math.min(48, cellH * 0.4);
+            const p = [baseX + jitterX, baseY + jitterY];
+            SLOTS.push(custom[idx] ? custom[idx].slice() : p);
+            TILTS.push((r() - 0.5) * 0.2);
+            COLS.push(cols[idx % cols.length]);
+          }
+        }
+
+        // relaxation push: resolve overlaps by nudging colliding notes apart
+        // uses seeded RNG for small random tie-breakers so layout is deterministic
+        const minX = NW + 12;
+        const minY = NH + 12;
+        const maxIter = 30;
+        for (let it = 0; it < maxIter; it++) {
+          let moved = false;
+          for (let i = 0; i < SLOTS.length; i++) {
+            for (let j = i + 1; j < SLOTS.length; j++) {
+              const dx = SLOTS[j][0] - SLOTS[i][0];
+              const dy = SLOTS[j][1] - SLOTS[i][1];
+              const overlapX = Math.abs(dx) < minX;
+              const overlapY = Math.abs(dy) < minY;
+              if (overlapX && overlapY) {
+                // compute push amounts proportional to overlap
+                const overlapW = (minX - Math.abs(dx)) || 0.1;
+                const overlapH = (minY - Math.abs(dy)) || 0.1;
+                const dirX = dx === 0 ? (r() - 0.5) || 0.01 : Math.sign(dx);
+                const dirY = dy === 0 ? (r() - 0.5) || 0.01 : Math.sign(dy);
+                const pushX = (overlapW / 2) * dirX;
+                const pushY = (overlapH / 2) * dirY;
+                SLOTS[i][0] -= pushX;
+                SLOTS[i][1] -= pushY;
+                SLOTS[j][0] += pushX;
+                SLOTS[j][1] += pushY;
+                moved = true;
+              }
             }
-          } while (
-            ((Math.abs(p[0] - 640) < 220 && Math.abs(p[1] - 440) < 155) ||
-              SLOTS.some(
-                (q) => Math.abs(q[0] - p[0]) < sx && Math.abs(q[1] - p[1]) < sy,
-              )) &&
-            tries < 2000
-          );
-          SLOTS.push(custom[i] ? custom[i].slice() : p);
-          TILTS.push((r() - 0.5) * 0.2);
-          COLS.push(cols[i % cols.length]);
+          }
+          // clamp to allowed canvas region used by notes (same as drag bounds)
+          for (let k = 0; k < SLOTS.length; k++) {
+            SLOTS[k][0] = clamp(SLOTS[k][0], NW / 2 + 30, W - NW / 2 - 30);
+            SLOTS[k][1] = clamp(SLOTS[k][1], 240, 609);
+          }
+          if (!moved) break;
         }
       }
       const foc = (x, y, s) => ({
@@ -1355,22 +1393,35 @@
         return buf;
       }
 
-      function scheduleSounds() {
-        if (!ac) return;
-        // disconnect previous nodes
-        curNodes.forEach((n) => {
-          try {
-            n.disconnect();
-          } catch (e) {}
-        });
-        curNodes = [];
-        // stop previously playing music source
+      function stopAudio() {
+        // stop music source and disconnect any scheduled audio nodes
         try {
-          if (musicSource) {
-            musicSource.stop();
+          if (musicSource && typeof musicSource.stop === "function") {
+            try {
+              musicSource.stop();
+            } catch (e) {}
           }
         } catch (e) {}
         musicSource = null;
+        curNodes.forEach((n) => {
+          try {
+            if (typeof n.stop === "function") {
+              try {
+                n.stop();
+              } catch (e) {}
+            }
+            try {
+              n.disconnect();
+            } catch (e) {}
+          } catch (e) {}
+        });
+        curNodes = [];
+      }
+
+      function scheduleSounds() {
+        if (!ac) return;
+        // stop any previous audio nodes and music source
+        stopAudio();
 
         const vol = parseFloat(
           (document.getElementById("music-vol") &&
@@ -1490,7 +1541,7 @@
         // make the play button act as Stop while running
         playB.disabled = false;
         playB.innerHTML =
-          '<iconify-icon icon="bi:stop-fill" ></iconify-icon> Stop';
+          '<iconify-icon icon="bi:stop-fill" style="color: #ff866c;" ></iconify-icon> Stop';
         playB.classList.add("sec");
         (function f() {
           const t = ((performance.now() - t0) / 1000) * timeScale;
@@ -1503,23 +1554,7 @@
             playB.disabled = false;
             document.getElementById("shuf").disabled = false;
             // stop any playing music and scheduled nodes
-            try {
-              if (musicSource && typeof musicSource.stop === "function") {
-                musicSource.stop();
-              }
-            } catch (e) {}
-            musicSource = null;
-            curNodes.forEach((x) => {
-              try {
-                if (typeof x.stop === "function") {
-                  try {
-                    x.stop();
-                  } catch (e) {}
-                }
-                x.disconnect();
-              } catch (e) {}
-            });
-            curNodes = [];
+            stopAudio();
 
             // restore play button UI
             playB.innerHTML =
@@ -1547,25 +1582,8 @@
         if (!running) return;
         cancelAnimationFrame(raf);
         running = false;
-        // stop any source-like nodes first (AudioBufferSourceNode or Oscillator)
-        curNodes.forEach((x) => {
-          try {
-            if (typeof x.stop === "function") {
-              try {
-                x.stop();
-              } catch (e) {}
-            }
-            x.disconnect();
-          } catch (e) {}
-        });
-        curNodes = [];
-        // stop music source if playing
-        try {
-          if (musicSource && typeof musicSource.stop === "function") {
-            musicSource.stop();
-          }
-        } catch (e) {}
-        musicSource = null;
+        // stop any playing music and scheduled nodes
+        stopAudio();
 
         if (recorder) {
           recorder.onstop = null;
@@ -1631,7 +1649,7 @@
         if (s) s.textContent = "Error binding UI controls: " + err.message;
       }
       function addRow(a = "", t = "") {
-        if (nl.children.length >= 10) return;
+        if (nl.children.length >= 12) return;
         const d = document.createElement("div");
         d.className = "nrow";
         d.innerHTML =
@@ -1657,7 +1675,7 @@
           ta.focus();
           ta.scrollIntoView({ behavior: "smooth", block: "center" });
         }
-        $("add").disabled = nl.children.length >= 10;
+        $("add").disabled = nl.children.length >= 12;
       }
 
       function applyData() {
@@ -1679,7 +1697,7 @@
         layoutNotes();
         build();
         still();
-        $("add").disabled = nl.children.length >= 10;
+        $("add").disabled = nl.children.length >= 12;
       }
       DATA.notes.slice(0, 4).forEach((x) => addRow(x.a, x.t));
       $("create").addEventListener("input", applyData);
@@ -1728,17 +1746,26 @@
         const sel = document.getElementById("music-select");
         const volEl = document.getElementById("music-vol");
         if (sel) {
-          sel.addEventListener("change", () => {
+          // prevent bubbling to parent controls (#create) which triggers applyData
+          sel.addEventListener("change", (e) => {
+            e.stopPropagation();
             const v = sel.value;
             if (v && v !== "none") {
               // warm-up decode for faster start
               loadMusic(v).catch((e) => console.warn("music warmup failed", e));
             }
           });
+          // some browsers fire 'input' for selects; block it too
+          sel.addEventListener("input", (e) => e.stopPropagation());
         }
 
         // speed control wiring (does NOT affect music playback)
         const speedSel = document.getElementById("speed");
+        // prevent music volume and selection changes from bubbling and re-applying layout
+        if (volEl) {
+          volEl.addEventListener('input', (e) => e.stopPropagation());
+          volEl.addEventListener('change', (e) => e.stopPropagation());
+        }
         if (speedSel) {
           const stored = parseFloat(
             localStorage.getItem("speedPref") || String(timeScale),
@@ -1747,12 +1774,17 @@
           try {
             speedSel.value = String(timeScale);
           } catch (e) {}
-          speedSel.addEventListener("change", () => {
+          // Prevent speed selector events from bubbling to the parent "create" container
+          // which would otherwise trigger applyData() and re-layout notes.
+          speedSel.addEventListener("change", (e) => {
+            e.stopPropagation();
             const v = parseFloat(speedSel.value) || 1;
             timeScale = v;
             localStorage.setItem("speedPref", String(timeScale));
             // deliberately do not change any music playbackRate here
           });
+          // Some browsers emit 'input' from select; stop it as well
+          speedSel.addEventListener("input", (e) => e.stopPropagation());
         }
       })();
 
@@ -1828,31 +1860,25 @@
         }
         function setActive(v) {
           if (!sel) return;
-          if (sel.tagName === "SELECT") {
-            try {
-              sel.value = v;
-            } catch (e) {}
-          } else {
-            const btns = Array.from(sel.querySelectorAll("[data-val]"));
-            btns.forEach((b) =>
-              b.setAttribute(
-                "aria-pressed",
-                b.getAttribute("data-val") === v ? "true" : "false",
-              ),
-            );
-            // update main icon + title
-            const mainBtn = sel.querySelector(".theme-btn");
-            try {
-              const mainIcon = mainBtn && mainBtn.querySelector("iconify-icon");
-              const name = ICONS[v] || ICONS.auto;
-              if (mainIcon) mainIcon.setAttribute("icon", name);
-              if (mainBtn)
-                mainBtn.setAttribute(
-                  "title",
-                  "Theme: " + (v.charAt(0).toUpperCase() + v.slice(1)),
-                );
-            } catch (e) {}
-          }
+          const btns = Array.from(sel.querySelectorAll("[data-val]"));
+          btns.forEach((b) =>
+            b.setAttribute(
+              "aria-pressed",
+              b.getAttribute("data-val") === v ? "true" : "false",
+            ),
+          );
+          // update main icon + title
+          const mainBtn = sel.querySelector(".theme-btn");
+          try {
+            const mainIcon = mainBtn && mainBtn.querySelector("iconify-icon");
+            const name = ICONS[v] || ICONS.auto;
+            if (mainIcon) mainIcon.setAttribute("icon", name);
+            if (mainBtn)
+              mainBtn.setAttribute(
+                "title",
+                "Theme: " + (v.charAt(0).toUpperCase() + v.slice(1)),
+              );
+          } catch (e) {}
         }
         // init
         const stored =
@@ -1860,52 +1886,56 @@
             ? localStorage.getItem(KEY)
             : null;
         if (sel) {
-          if (sel.tagName === "SELECT") {
-            sel.value = stored || "auto";
-            sel.addEventListener("change", () => {
-              const v = sel.value;
+          const btns = Array.from(sel.querySelectorAll("[data-val]"));
+          const mainBtn = sel.querySelector(".theme-btn");
+          const menu = sel.querySelector(".theme-menu");
+          btns.forEach((b) =>
+            b.addEventListener("click", (ev) => {
+              const v = b.getAttribute("data-val");
               try {
                 localStorage.setItem(KEY, v);
               } catch (e) {}
               setActive(v);
               applyTheme(v);
-            });
-            setActive(stored || "auto");
-          } else {
-            const btns = Array.from(sel.querySelectorAll("[data-val]"));
-            const mainBtn = sel.querySelector(".theme-btn");
-            const menu = sel.querySelector(".theme-menu");
-            btns.forEach((b) =>
-              b.addEventListener("click", (ev) => {
-                const v = b.getAttribute("data-val");
-                try {
-                  localStorage.setItem(KEY, v);
-                } catch (e) {}
-                setActive(v);
-                applyTheme(v);
-                // close dropdown
-                if (menu) menu.hidden = true;
-                if (mainBtn) mainBtn.setAttribute("aria-expanded", "false");
-                ev.stopPropagation();
-              }),
-            );
-            // keyboard support (left/right)
-            sel.addEventListener("keydown", (e) => {
-              if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-                e.preventDefault();
-                const btns = Array.from(sel.querySelectorAll("[data-val]"));
-                const idx = btns.findIndex(
-                  (x) => x.getAttribute("aria-pressed") === "true",
-                );
-                let next = idx;
-                if (e.key === "ArrowRight")
-                  next = Math.min(btns.length - 1, idx + 1);
-                else next = Math.max(0, idx - 1);
-                btns[next].focus();
-                btns[next].click();
-              }
-            });
-            setActive(stored || "auto");
+              // close dropdown
+              if (menu) menu.hidden = true;
+              if (mainBtn) mainBtn.setAttribute("aria-expanded", "false");
+              ev.stopPropagation();
+            }),
+          );
+          // keyboard support (left/right)
+          sel.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+              e.preventDefault();
+              const btns = Array.from(sel.querySelectorAll("[data-val]"));
+              const idx = btns.findIndex(
+                (x) => x.getAttribute("aria-pressed") === "true",
+              );
+              let next = idx;
+              if (e.key === "ArrowRight")
+                next = Math.min(btns.length - 1, idx + 1);
+              else next = Math.max(0, idx - 1);
+              btns[next].focus();
+              btns[next].click();
+            }
+          });
+          setActive(stored || "auto");
+
+          // dropdown toggle handling when using the dropdown variant
+          if (sel.classList && sel.classList.contains("theme-dropdown")) {
+            if (mainBtn && menu) {
+              mainBtn.addEventListener("click", () => {
+                const open = mainBtn.getAttribute("aria-expanded") === "true";
+                mainBtn.setAttribute("aria-expanded", open ? "false" : "true");
+                menu.hidden = open ? true : false;
+              });
+              document.addEventListener("click", (e) => {
+                if (!sel.contains(e.target)) {
+                  mainBtn.setAttribute("aria-expanded", "false");
+                  menu.hidden = true;
+                }
+              });
+            }
           }
         }
         applyTheme(stored || "auto");
@@ -1922,25 +1952,6 @@
             });
           }
         } catch (e) {}
-
-        // dropdown toggle handling when using the dropdown variant
-        if (sel && sel.classList && sel.classList.contains("theme-dropdown")) {
-          const btn = sel.querySelector(".theme-btn");
-          const menu = sel.querySelector(".theme-menu");
-          if (btn && menu) {
-            btn.addEventListener("click", () => {
-              const open = btn.getAttribute("aria-expanded") === "true";
-              btn.setAttribute("aria-expanded", open ? "false" : "true");
-              menu.hidden = open ? true : false;
-            });
-            document.addEventListener("click", (e) => {
-              if (!sel.contains(e.target)) {
-                btn.setAttribute("aria-expanded", "false");
-                menu.hidden = true;
-              }
-            });
-          }
-        }
       })();
     </script>
   </body>

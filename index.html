@@ -1452,12 +1452,18 @@
           g.gain.value = vol;
           const src = ac.createBufferSource();
           src.buffer = buf;
-          src.loop = false;
+          src.loop = true; // loop track so music repeats if shorter than video
           src.playbackRate.value = 1; // do not let speed control affect music
           src.connect(g);
           g.connect(ac.destination);
           if (dest) g.connect(dest);
           src.start(ac.currentTime);
+          // ensure music stops when the video finishes
+          try {
+            if (typeof src.stop === 'function' && typeof TOTAL !== 'undefined') {
+              src.stop(ac.currentTime + scaleDur(TOTAL) + 0.1);
+            }
+          } catch (e) {}
           musicSource = src;
           curNodes.push(src, g);
         } else {
@@ -1524,7 +1530,7 @@
         dest = record ? ac.createMediaStreamDestination() : null;
         if (record) {
           try {
-            const s = cv.captureStream(30);
+            const s = cv.captureStream(15);
             dest.stream.getAudioTracks().forEach((tr) => s.addTrack(tr));
             // try mp4 first, then webm fallbacks
             const mCandidates = [

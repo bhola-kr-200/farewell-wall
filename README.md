@@ -1,19 +1,20 @@
 # Farewell Wall Video
 
-Farewell Wall is a small single-file web app that turns a colleague's name and team messages into an animated whiteboard-style video you can preview and download.
+Farewell Wall is a single-file client-side web app that turns a colleague's name and team messages into an animated whiteboard video you can preview and download.
 
 ## Key features
 
 - Canvas-based whiteboard animation (client-side only).
-- Add a colleague name, a centered final message, and multiple team messages.
-- Drag-and-drop reorder for team messages with immediate preview updates.
+- Add a colleague name, an optional profile image (file input -> base64), a centered final message, and multiple team messages.
+- Drag-to-reorder messages with immediate preview updates.
 - Theme selector (Auto / Light / Dark) persisted in localStorage (`themePref`).
-- Iconify icons and Picnic CSS for lightweight UI styling.
+- Lightweight UI: Iconify icons + Picnic CSS.
 - Preview (play/stop) and generate a downloadable video (MediaRecorder with audio mixing).
 
 ## Important files
 
 - `index.html` — single-file app containing HTML, CSS, and JavaScript (primary file to edit).
+- `assets/music/` — place music files here (the app looks for `music-1.mp3`, `music-2.mp3`, `music-3.mp3`).
 - `img/sticky_note_collage.svg` — hero image used on the home screen.
 - `README.md` — this document.
 
@@ -24,35 +25,49 @@ Farewell Wall is a small single-file web app that turns a colleague's name and t
   - Python: `python3 -m http.server 8000` then open http://localhost:8000
   - Node: `npx http-server -c-1`
 
-There is no build step or package manager required.
+No build step or package manager required.
 
 ## Data model & DOM hooks
 
 The app uses a simple DATA structure in the inline script:
 
 ```
-DATA = { name, final, notes: [{ a, t }, ...] }
+DATA = { name, final, notes: [{ a, t }, ...], userPic }
 ```
 
-Critical DOM IDs (do not rename unless updating the script): `nm`, `fin`, `nl`, `cv`, `play`, `stop`, `rec`, `dl`, `snd`, `mus`, `music-vol`, `add`, `clr`, `shuf`.
+Critical DOM IDs (do not rename unless updating the script):
+- Inputs / UI: `nm`, `fin`, `nl`, `userPic` (file input), `preview` (image preview)
+- Canvas & controls: `cv`, `play`, `stop`, `rec`, `dl`, `add`, `clr`, `shuf`
+- Music controls: `music-select`, `mus` (checkbox), `music-vol`
+- Playback speed: `speed` (note: speed does NOT affect music playback)
 
-## Customization
+## Music behaviour
 
-- Visual variables are at the top of the stylesheet (`:root`): `--bg`, `--fg`, `--card`, `--accent`.
-- Canvas constants (resolution and font) live at the top of the inline script (`W`, `H`, `FONT`).
-- Theme preference stored in `localStorage.themePref` and applied via `data-theme` on `<html>`.
+- Per-note sound effects were removed; the app now plays background music from external files in `assets/music/`.
+- The dropdown `music-select` lists: `No music`, `music-1`, `music-2`, `music-3` (hardcoded). Place those files in `assets/music/`.
+- Music is decoded with Web Audio and played as an AudioBufferSourceNode; playbackRate is fixed at 1 so changing the preview speed does NOT change music tempo.
+- Music is mixed into recordings (MediaRecorder) when recording is enabled.
+- Music stops automatically when the preview ends or when playback is stopped.
+
+## Image handling
+
+- Add a profile image using the `userPic` file input. The image is converted to a base64 data URL and shown in the `preview` image element.
+- The final note draws the uploaded image as a square at the bottom-center of the note; the image is optional.
+
+## Button/icon alignment
+
+- Buttons use inline-flex with centered icon + label to ensure icons align vertically with text across browsers.
 
 ## Recording & browser notes
 
-- The recorder attempts MP4 first and falls back to WebM; many browsers only support WebM for MediaRecorder.
-- Generating a recording is done in real time and may take ~40s for a full run.
-- HTML5 drag-and-drop can be inconsistent on some touch devices; a pointer/touch fallback is recommended if mobile support is critical.
+- Recorder prefers MP4 but falls back to WebM; many browsers only support WebM for MediaRecorder.
+- Recording captures video + mixed audio (music if enabled).
+- Generating a recording is done in real time and may take as long as the preview (~30–60s depending on content).
 
 ## Development notes
 
-- Make small, surgical edits to `index.html` (markup, styles, inline JS) to preserve app behavior.
-- There are no tests or linters configured. Add tooling if you plan automated checks.
-- For large refactors consider splitting CSS/JS into separate files.
+- Make targeted edits to `index.html` to preserve behavior. The code intentionally keeps logic inline for simplicity.
+- If adding music files, put `music-1.mp3`, `music-2.mp3`, and `music-3.mp3` in `assets/music/`.
 
 ## Known limitations & next steps
 

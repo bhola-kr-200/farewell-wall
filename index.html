@@ -1414,7 +1414,7 @@
         recB = document.getElementById("rec"),
         st = document.getElementById("st"),
         dl = document.getElementById("dl");
-      function run(record) {
+      async function run(record) {
         if (running) return;
         running = true;
         recB.disabled = true;
@@ -1468,6 +1468,12 @@
                 '<iconify-icon icon="bi:play-fill" ></iconify-icon> Preview';
               playB.classList.remove("sec");
             };
+            // Warm up capture: render first frame and wait two animation frames
+            // so captureStream has an initial frame before recording starts.
+            try {
+              render(0);
+            } catch (e) {}
+            await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
             recorder.start();
           } catch (e) {
             st.textContent =
@@ -1476,6 +1482,7 @@
             recorder = null;
           }
         }
+        // start audio after recorder has begun so audio/video align at the start
         scheduleSounds();
         const t0 = performance.now();
         st.textContent = record ? "Recording in real time…" : "Playing…";

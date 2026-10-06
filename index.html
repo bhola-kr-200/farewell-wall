@@ -96,6 +96,60 @@
         opacity: 0.5;
         cursor: default;
       }
+
+      /* responsive controls: row on desktop, stacked on mobile */
+      .preview-header {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .preview-header .preview-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .controls-bottom {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+      .controls-bottom .left-controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .controls-bottom .right-controls {
+        display: flex;
+        gap: 8px;
+        margin-left: auto;
+      }
+      @media (max-width: 720px) {
+        .controls-bottom {
+          align-items: stretch;
+        }
+        .controls-bottom .right-controls {
+          margin-left: 0;
+          justify-content: flex-start;
+        }
+        .controls-bottom .left-controls,
+        .controls-bottom .right-controls {
+          width: 100%;
+          gap: 8px;
+        }
+        .controls-bottom .left-controls .select-wrap {
+          width: 100%;
+          min-width: 0;
+        }
+        .controls-bottom .right-controls button,
+        .controls-bottom .right-controls a {
+          width: 100%;
+        }
+      }
+
       #st {
         font-size: 0.85rem;
         opacity: 0.8;
@@ -454,6 +508,25 @@
         gap: 0;
       }
 
+      @media (max-width: 400px) {
+        .preview-header {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 8px;
+        }
+        .preview-header .preview-actions {
+          justify-content: flex-start;
+          width: 100%;
+        }
+        .preview-header .preview-actions button {
+          width: auto;
+        }
+
+        /* make status text full-width on small screens */
+        #st { width: 100%; }
+      }
+
+
       @media (max-width: 600px) {
         .hero {
           padding: 18px 8px;
@@ -592,7 +665,7 @@
       </div>
     </nav>
 
-    <main class="container">
+    <main class="container" style="padding-bottom:25px">
       <section id="home" class="view">
         <div class="hero">
           <img
@@ -638,17 +711,12 @@
 
       <section id="create" class="view" hidden>
         <div class="grid grid--stack" style="gap: 20px; align-items: start">
+          <!-- Panel for video preview -->
           <section class="panel pv" style="min-width: 300px">
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-              "
-            >
+            <!-- Video preview controls and canvas -->
+            <div class="preview-header" style="margin-bottom:6px;">
               <h2 style="margin: 0">Preview</h2>
-              <div style="display: flex; gap: 8px; align-items: center">
+              <div class="preview-actions">
                 <button id="stop" class="sec" hidden>
                   <iconify-icon icon="bi:stop-fill"></iconify-icon> Stop
                 </button>
@@ -663,19 +731,10 @@
 
             <canvas id="cv" width="1280" height="720"></canvas>
 
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                flex-wrap: wrap;
-                margin-top: 10px;
-              "
-            >
-              <div
-                id="music-controls"
-                style="display: flex; align-items: center; gap: 12px"
-              >
+            <!-- Video preview bottom controls -->
+            <div class="controls-bottom" style="margin-top:6px;">
+              <div id="music-controls" class="left-controls">
+
                 <div
                   class="select-wrap"
                   style="
@@ -714,6 +773,7 @@
                     "
                   ></iconify-icon>
                 </div>
+
                 <label
                   style="
                     display: flex;
@@ -733,16 +793,7 @@
                     style="width: 100px; margin-left: 6px"
                   />
                 </label>
-                <label
-                  style="
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    font-size: 0.9rem;
-                  "
-                >
-                  <input type="checkbox" id="mus" checked style="width: auto" />
-                </label>
+
                 <label>
                   <select
                     id="speed"
@@ -762,15 +813,8 @@
                 </label>
               </div>
 
-              <div
-                style="
-                  margin-left: auto;
-                  display: flex;
-                  gap: 8px;
-                  flex-wrap: wrap;
-                "
-              >
-                <button id="rec">
+              <div class="right-controls">
+                <button id="rec" style="display: flex; align-items: center; justify-content: center;">
                   <iconify-icon
                     icon="bi:file-earmark-arrow-down-fill"
                   ></iconify-icon>
@@ -795,6 +839,7 @@
             </div>
           </section>
 
+          <!-- Panel for user inputs -->
           <aside class="panel" style="min-width: 280px">
             <h2>Who's leaving?</h2>
             <input
@@ -1325,10 +1370,8 @@
             document.getElementById("music-vol").value) ||
             0.6,
         );
-        const musCheckbox = document.getElementById("mus");
         const sel = document.getElementById("music-select");
         const chosen = sel && sel.value ? sel.value : "none";
-        if (!musCheckbox || !musCheckbox.checked) return;
         if (!chosen || chosen === "none") return;
         const buf = musicBuffers[chosen];
         if (buf) {

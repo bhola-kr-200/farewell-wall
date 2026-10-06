@@ -445,7 +445,6 @@
           gap: 6px;
         }
         .nrow .controls .x {
-          padding: 6px;
           min-width: 34px;
           height: 34px;
           box-sizing: border-box;
@@ -523,9 +522,10 @@
         }
 
         /* make status text full-width on small screens */
-        #st { width: 100%; }
+        #st {
+          width: 100%;
+        }
       }
-
 
       @media (max-width: 600px) {
         .hero {
@@ -665,7 +665,7 @@
       </div>
     </nav>
 
-    <main class="container" style="padding-bottom:25px">
+    <main class="container" style="padding-bottom: 25px">
       <section id="home" class="view">
         <div class="hero">
           <img
@@ -714,7 +714,7 @@
           <!-- Panel for video preview -->
           <section class="panel pv" style="min-width: 300px">
             <!-- Video preview controls and canvas -->
-            <div class="preview-header" style="margin-bottom:6px;">
+            <div class="preview-header" style="margin-bottom: 6px">
               <h2 style="margin: 0">Preview</h2>
               <div class="preview-actions">
                 <button id="stop" class="sec" hidden>
@@ -732,9 +732,8 @@
             <canvas id="cv" width="1280" height="720"></canvas>
 
             <!-- Video preview bottom controls -->
-            <div class="controls-bottom" style="margin-top:6px;">
+            <div class="controls-bottom" style="margin-top: 6px">
               <div id="music-controls" class="left-controls">
-
                 <div
                   class="select-wrap"
                   style="
@@ -814,7 +813,14 @@
               </div>
 
               <div class="right-controls">
-                <button id="rec" style="display: flex; align-items: center; justify-content: center;">
+                <button
+                  id="rec"
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
                   <iconify-icon
                     icon="bi:file-earmark-arrow-down-fill"
                   ></iconify-icon>
@@ -823,7 +829,7 @@
                 <a
                   id="dl"
                   class="button"
-                  style="display: none"
+                  style="display: none; background: var(--accent); color: #fff"
                   download="farewell.mp4"
                   >Save video</a
                 >

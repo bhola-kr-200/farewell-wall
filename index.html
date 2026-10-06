@@ -77,6 +77,15 @@
       /* Buttons: rely on Picnic CSS for default button styles; custom rules removed to reduce inline CSS */
       button {
         background: var(--accent);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      button iconify-icon,
+      button svg {
+        vertical-align: middle;
+        display: inline-block;
+        line-height: 1;
       }
       button.sec {
         background: var(--card);
@@ -587,7 +596,7 @@
       <section id="home" class="view">
         <div class="hero">
           <img
-            src="img/sticky_note_collage.svg"
+            src="assets/img/sticky_note_collage.svg"
             class="collage"
             alt="Sticky notes collage"
             aria-hidden="true"
@@ -598,7 +607,12 @@
             sticky notes, pop sounds and slow zooms. Everything is made in your
             browser, nothing is uploaded.
           </p>
-          <a class="button" href="#" id="go" style="font-size: 1.5em; background: var(--accent);">Create yours
+          <a
+            class="button"
+            href="#"
+            id="go"
+            style="font-size: 1.5em; background: var(--accent)"
+            >Create yours
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -674,25 +688,16 @@
                   "
                 >
                   <select
-                    id="snd"
-                    title="Sound style"
+                    id="music-select"
+                    title="Music track"
                     style="
-                      -webkit-appearance: none;
-                      -moz-appearance: none;
-                      appearance: none;
                       background: transparent;
                       border: 0;
-                      padding: 8px 36px 8px 12px;
                       width: 100%;
                       color: var(--fg);
-                      font: inherit;
-                      cursor: pointer;
                     "
                   >
-                    <option value="stick">Paper stick + marker</option>
-                    <option value="bubble">Bubble pop</option>
-                    <option value="tick">Soft click</option>
-                    <option value="melody">Musical notes</option>
+                    <option value="none">No music</option>
                   </select>
                   <iconify-icon
                     class="select-arrow"
@@ -725,7 +730,7 @@
                     max="1"
                     step="0.01"
                     value="0.6"
-                    style="width: 110px; margin-left: 6px"
+                    style="width: 100px; margin-left: 6px"
                   />
                 </label>
                 <label
@@ -738,26 +743,16 @@
                 >
                   <input type="checkbox" id="mus" checked style="width: auto" />
                 </label>
-                <label
-                  style="
-                    display: flex;
-                    flex-direction: column;
-                    gap: 4px;
-                    font-size: 0.9rem;
-                    min-width: 140px;
-                    margin-left: 8px;
-                  "
-                >
+                <label>
                   <select
                     id="speed"
                     title="Playback speed"
                     style="
-                      padding: 6px;
                       border-radius: 8px;
                       border: 1px solid #8886;
                       background: var(--card);
                       color: var(--fg);
-                      min-width: 120px;
+                      min-width: 100px;
                     "
                   >
                     <option value="2">2x</option>
@@ -817,10 +812,30 @@
             />
 
             <h2 style="margin-top: 5px">Profile picture (optional)</h2>
-            <input type="file" id="userPic" accept="image/*">
-            <div style="margin-top:8px; display:flex; align-items:center; gap:10px;">
-              <img id="preview" alt="Profile preview" style="display:none; width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid rgba(0,0,0,0.08)"/>
-              <small style="opacity:0.8">Optional — shown on the final note</small>
+            <input type="file" id="userPic" accept="image/*" />
+            <div
+              style="
+                margin-top: 8px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+              "
+            >
+              <img
+                id="preview"
+                alt="Profile preview"
+                style="
+                  display: none;
+                  width: 64px;
+                  height: 64px;
+                  object-fit: cover;
+                  border-radius: 8px;
+                  border: 1px solid rgba(0, 0, 0, 0.08);
+                "
+              />
+              <small style="opacity: 0.8"
+                >Optional — shown on the final note</small
+              >
             </div>
 
             <h2 style="margin-top: 5px">Team messages</h2>
@@ -836,7 +851,9 @@
               class="row"
               style="justify-content: flex-start; gap: 2px; margin-top: 8px"
             >
-              <button class="sec" id="add"><iconify-icon icon="bi:plus-lg" ></iconify-icon> Add message</button>
+              <button class="sec" id="add">
+                <iconify-icon icon="bi:plus-lg"></iconify-icon> Add message
+              </button>
               <button class="sec" id="clr">Clear all</button>
             </div>
           </aside>
@@ -845,42 +862,44 @@
     </main>
 
     <script>
-
       // profile picture handling: read file as data URL and keep in memory
       let userPicData = null;
       const userPicImg = new Image();
 
-      document.getElementById('userPic').addEventListener('change', function(event) {
-            const file = event.target.files[0];
+      document
+        .getElementById("userPic")
+        .addEventListener("change", function (event) {
+          const file = event.target.files[0];
 
-            if (file) {
-                const reader = new FileReader();
+          if (file) {
+            const reader = new FileReader();
 
-                reader.onload = function(e) {
-                    userPicData = e.target.result;
-                    try {
-                      userPicImg.src = userPicData;
-                    } catch (err) {}
-                    const previewImg = document.getElementById('preview');
-                    if (previewImg) {
-                      previewImg.src = userPicData;
-                      previewImg.style.display = 'block';
-                    }
-                    // update DATA and re-render
-                    applyData();
-                }
+            reader.onload = function (e) {
+              userPicData = e.target.result;
+              try {
+                userPicImg.src = userPicData;
+              } catch (err) {}
+              const previewImg = document.getElementById("preview");
+              if (previewImg) {
+                previewImg.src = userPicData;
+                previewImg.style.display = "block";
+              }
+              // update DATA and re-render
+              applyData();
+            };
 
-                reader.readAsDataURL(file);
-            } else {
-                // no file selected
-                userPicData = null;
-                try { userPicImg.src = ''; } catch (e) {}
-                const previewImg = document.getElementById('preview');
-                if (previewImg) previewImg.style.display = 'none';
-                applyData();
-            }
+            reader.readAsDataURL(file);
+          } else {
+            // no file selected
+            userPicData = null;
+            try {
+              userPicImg.src = "";
+            } catch (e) {}
+            const previewImg = document.getElementById("preview");
+            if (previewImg) previewImg.style.display = "none";
+            applyData();
+          }
         });
-
 
       window.addEventListener("error", (e) => {
         const s = document.getElementById("st");
@@ -908,7 +927,10 @@
             a: "Person B",
             t: "Best code reviews ever. You made all of us better engineers.",
           },
-          { a: "Person C", t: "Remember the 2 AM deploy? Legend. Stay in touch!" },
+          {
+            a: "Person C",
+            t: "Remember the 2 AM deploy? Legend. Stay in touch!",
+          },
           {
             a: "Person D",
             t: "Thank you for teaching me so much. Wishing you the very best!",
@@ -1208,7 +1230,12 @@
             // show image together with the final note's appearance
             const showAge = fa; // age for final note
             const sLocal = back(showAge / 0.35);
-            if (showAge >= 0 && sLocal > 0 && img && (img.complete || img.naturalWidth)) {
+            if (
+              showAge >= 0 &&
+              sLocal > 0 &&
+              img &&
+              (img.complete || img.naturalWidth)
+            ) {
               // draw inside the note's local coordinate space so it appears with the note
               // note() draws the note centered at 0,0 in local space with size FW x FH
               const localX = -imgSize / 2; // center horizontally
@@ -1222,10 +1249,10 @@
               c.scale(sLocal, sLocal);
 
               // subtle background and border behind the image (slightly larger)
-              c.fillStyle = 'rgba(0,0,0,0.06)';
+              c.fillStyle = "rgba(0,0,0,0.06)";
               c.fillRect(localX - 4, localY - 4, imgSize + 8, imgSize + 8);
               c.drawImage(img, localX, localY, imgSize, imgSize);
-              c.strokeStyle = 'rgba(255,255,255,0.9)';
+              c.strokeStyle = "rgba(255,255,255,0.9)";
               c.lineWidth = 2 / (sLocal || 1); // compensate stroke width for scale
               c.strokeRect(localX, localY, imgSize, imgSize);
               c.restore();
@@ -1237,260 +1264,96 @@
       // ---- audio ----
       let ac = null,
         dest = null;
-      const SC = [
-        523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.5, 1568,
-        1760,
-      ];
-      function tone(f, at, vol, bus) {
-        const o = ac.createOscillator(),
-          o2 = ac.createOscillator(),
-          g = ac.createGain(),
-          g2 = ac.createGain();
-        o.type = "triangle";
-        o2.type = "sine";
-        o.frequency.setValueAtTime(f * 1.35, at);
-        o.frequency.exponentialRampToValueAtTime(f, at + scaleDur(0.04));
-        o2.frequency.setValueAtTime(f * 2, at);
-        g2.gain.value = 0.3;
-        g.gain.setValueAtTime(0.0001, at);
-        g.gain.exponentialRampToValueAtTime(vol, at + scaleDur(0.012));
-        g.gain.exponentialRampToValueAtTime(0.0001, at + scaleDur(0.5));
-        o.connect(g);
-        o2.connect(g2);
-        g2.connect(g);
-        g.connect(bus);
-        o.start(at);
-        o2.start(at);
-        o.stop(at + scaleDur(0.55));
-        o2.stop(at + scaleDur(0.55));
-      }
-      function noise(at, dur, vol, bus, fq) {
-        const L = Math.floor(ac.sampleRate * dur),
-          buf = ac.createBuffer(1, L, ac.sampleRate),
-          d = buf.getChannelData(0);
-        for (let i = 0; i < L; i++)
-          d[i] = (Math.random() * 2 - 1) * (1 - i / L);
-        const sr = ac.createBufferSource(),
-          f = ac.createBiquadFilter(),
-          g = ac.createGain();
-        sr.buffer = buf;
-        f.type = "bandpass";
-        f.frequency.value = fq;
-        g.gain.value = vol;
-        sr.connect(f);
-        f.connect(g);
-        g.connect(bus);
-        sr.start(at);
-      }
-      function bubble(at, bus, p) {
-        const o = ac.createOscillator(),
-          g = ac.createGain(),
-          f = 300 * p;
-        o.type = "sine";
-        o.frequency.setValueAtTime(f, at);
-        o.frequency.exponentialRampToValueAtTime(f * 3.2, at + scaleDur(0.07));
-        g.gain.setValueAtTime(0.0001, at);
-        g.gain.exponentialRampToValueAtTime(0.9, at + scaleDur(0.006));
-        g.gain.exponentialRampToValueAtTime(0.0001, at + scaleDur(0.12));
-        o.connect(g);
-        g.connect(bus);
-        o.start(at);
-        o.stop(at + scaleDur(0.15));
-        noise(at, scaleDur(0.03), 0.3, bus, 2500);
-      }
-      function tick(at, bus, p) {
-        const o = ac.createOscillator(),
-          g = ac.createGain();
-        o.type = "triangle";
-        o.frequency.setValueAtTime(1400 * p, at);
-        o.frequency.exponentialRampToValueAtTime(380 * p, at + scaleDur(0.03));
-        g.gain.setValueAtTime(0.0001, at);
-        g.gain.exponentialRampToValueAtTime(0.8, at + scaleDur(0.003));
-        g.gain.exponentialRampToValueAtTime(0.0001, at + scaleDur(0.07));
-        o.connect(g);
-        g.connect(bus);
-        o.start(at);
-        o.stop(at + scaleDur(0.1));
-        noise(at, scaleDur(0.02), 0.35, bus, 4000);
-      }
+      // Minimal replacement audio: short clicks and simple melody using oscillators.
       let curNodes = [];
-      function nz(at, dur, bus, f0, f1, vol, att, q, am, sus) {
-        const L = Math.floor(ac.sampleRate * dur),
-          buf = ac.createBuffer(1, L, ac.sampleRate),
-          d = buf.getChannelData(0);
-        for (let i = 0; i < L; i++) {
-          let a = Math.random() * 2 - 1;
-          if (am) a *= Math.abs(Math.sin((i / ac.sampleRate) * am * 3.1416));
-          d[i] = a;
-        }
-        const sr = ac.createBufferSource(),
-          f = ac.createBiquadFilter(),
-          g = ac.createGain();
-        sr.buffer = buf;
-        f.type = "bandpass";
-        f.Q.value = q;
-        f.frequency.setValueAtTime(f0, at);
-        f.frequency.exponentialRampToValueAtTime(f1, at + dur);
-        g.gain.setValueAtTime(0.0001, at);
-        g.gain.exponentialRampToValueAtTime(vol, at + att);
-        if (sus)
-          g.gain.setValueAtTime(vol, at + Math.max(0, dur - scaleDur(0.1)));
-        g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-        sr.connect(f);
-        f.connect(g);
-        g.connect(bus);
-        sr.start(at);
-      }
-      function stick(at, bus, p) {
-        const o = ac.createOscillator(),
-          g = ac.createGain();
-        o.type = "sine";
-        o.frequency.setValueAtTime(170 * p, at);
-        o.frequency.exponentialRampToValueAtTime(70, at + scaleDur(0.09));
-        g.gain.setValueAtTime(0.0001, at);
-        g.gain.exponentialRampToValueAtTime(0.7, at + scaleDur(0.005));
-        g.gain.exponentialRampToValueAtTime(0.0001, at + scaleDur(0.13));
-        o.connect(g);
-        g.connect(bus);
-        o.start(at);
-        o.stop(at + scaleDur(0.15));
-        nz(at, scaleDur(0.09), bus, 3200 * p, 1200, 0.5, scaleDur(0.003), 0.8);
-        nz(at, scaleDur(0.035), bus, 6000, 5000, 0.15, scaleDur(0.002), 1);
-      }
-      function bell(f, at, vol, bus) {
-        [1, 2.01, 3.97].forEach((m, k) => {
-          const o = ac.createOscillator(),
-            g = ac.createGain();
-          o.type = "sine";
-          o.frequency.value = f * m;
-          g.gain.setValueAtTime(0.0001, at);
-          g.gain.exponentialRampToValueAtTime(
-            vol / (k + 1),
-            at + scaleDur(0.008),
-          );
-          g.gain.exponentialRampToValueAtTime(0.0001, at + scaleDur(1.6));
-          o.connect(g);
-          g.connect(bus);
-          o.start(at);
-          o.stop(at + scaleDur(1.7));
+      // music buffers populated from assets/music/manifest.json (optional)
+      let musicBuffers = {};
+      let musicList = [];
+      let musicSource = null;
+
+      async function loadMusicList() {
+        // Hardcoded music files available in assets/music/
+        musicList = ["music-1.mp3", "music-2.mp3", "music-3.mp3"];
+        const sel = document.getElementById("music-select");
+        if (!sel) return;
+        sel.innerHTML = '<option value="none">No music</option>';
+        musicList.forEach((f) => {
+          const opt = document.createElement("option");
+          opt.value = f;
+          opt.textContent = f
+            .replace(/\.(mp3|wav|ogg)$/i, "")
+            .replace(/-/g, " ")
+            .toLowerCase()
+            .replace(/\b\w/g, (char) => char.toUpperCase());
+          sel.appendChild(opt);
         });
       }
-      function music(b, bus) {
-        const ch = [
-            [261.63, 329.63, 392],
-            [196, 246.94, 392],
-            [220, 261.63, 329.63],
-            [174.61, 220, 261.63],
-          ],
-          m = ac.createGain(),
-          lp = ac.createBiquadFilter();
-        lp.type = "lowpass";
-        lp.frequency.value = 1100;
-        m.gain.setValueAtTime(0.0001, b);
-        m.gain.exponentialRampToValueAtTime(0.1, b + scaleDur(2.5));
-        m.gain.setValueAtTime(0.1, b + scaleDur(TOTAL - 3));
-        m.gain.exponentialRampToValueAtTime(0.0001, b + scaleDur(TOTAL));
-        m.connect(lp);
-        lp.connect(bus);
-        for (let t = 0, j = 0; t < TOTAL; t += 4, j++) {
-          const c = ch[j % 4];
-          [...c, c[0] / 2].forEach((f, k) => {
-            const o = ac.createOscillator(),
-              g = ac.createGain(),
-              a = b + scaleDur(t);
-            o.type = k == 3 ? "sine" : "triangle";
-            o.frequency.value = f;
-            g.gain.setValueAtTime(0.0001, a);
-            g.gain.exponentialRampToValueAtTime(
-              k == 3 ? 0.5 : 0.28,
-              a + scaleDur(1.2),
-            );
-            g.gain.setValueAtTime(k == 3 ? 0.5 : 0.28, a + scaleDur(3.2));
-            g.gain.exponentialRampToValueAtTime(0.0001, a + scaleDur(4.8));
-            o.connect(g);
-            g.connect(m);
-            o.start(a);
-            o.stop(a + scaleDur(4.9));
-          });
-        }
+
+      async function loadMusic(name) {
+        if (!name || name === "none") return null;
+        if (musicBuffers[name]) return musicBuffers[name];
+        if (!ac)
+          ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+        const url = "assets/music/" + name;
+        const r = await fetch(url);
+        if (!r.ok) throw new Error("failed to fetch " + url);
+        const ab = await r.arrayBuffer();
+        const buf = await ac.decodeAudioData(ab);
+        musicBuffers[name] = buf;
+        return buf;
       }
+
       function scheduleSounds() {
-        const b = ac.currentTime,
-          bus = ac.createGain(),
-          dly = ac.createDelay(),
-          fb = ac.createGain(),
-          k = selectedSound;
-        bus.gain.value = parseFloat(
+        if (!ac) return;
+        // disconnect previous nodes
+        curNodes.forEach((n) => {
+          try {
+            n.disconnect();
+          } catch (e) {}
+        });
+        curNodes = [];
+        // stop previously playing music source
+        try {
+          if (musicSource) {
+            musicSource.stop();
+          }
+        } catch (e) {}
+        musicSource = null;
+
+        const vol = parseFloat(
           (document.getElementById("music-vol") &&
             document.getElementById("music-vol").value) ||
             0.6,
         );
-        dly.delayTime.value = 0.23;
-        fb.gain.value = 0.22;
-        curNodes = [bus, dly];
-        bus.connect(ac.destination);
-        bus.connect(dly);
-        dly.connect(fb);
-        fb.connect(dly);
-        dly.connect(ac.destination);
-        if (dest) {
-          bus.connect(dest);
-          dly.connect(dest);
-        }
-        if ($("mus").checked) music(b, bus);
-        for (let i = 0; i < n; i++) {
-          const at = b + scaleDur(popT(i)),
-            p = 0.9 + Math.random() * 0.25;
-          if (k === "stick") {
-            stick(at, bus, p);
-            nz(
-              at + scaleDur(0.3),
-              scaleDur(0.6),
-              bus,
-              2800,
-              3600,
-              0.12,
-              scaleDur(0.03),
-              2,
-              24,
-              1,
-            );
-          } else if (k === "bubble") bubble(at, bus, p);
-          else if (k === "tick") tick(at, bus, p);
-          else tone(SC[i % SC.length], at, 0.5, bus);
-        }
-        if (k === "stick") {
-          cam.forEach((c2, i) => {
-            const a = cam[i - 1];
-            if (i && (a.cx !== c2.cx || a.cy !== c2.cy || a.s !== c2.s)) {
-              const d = c2.t - a.t;
-              nz(
-                b + scaleDur(a.t),
-                scaleDur(d),
-                bus,
-                350,
-                1600,
-                0.1,
-                scaleDur(d * 0.4),
-                0.8,
-              );
-            }
-          });
-          stick(b + scaleDur(finalT), bus, 0.8);
-          [523.25, 659.25, 783.99, 1046.5].forEach((f, j) =>
-            bell(f * 2, b + scaleDur(finalT + 0.25 + j * 0.18), 0.22, bus),
-          );
-        } else if (k === "melody")
-          [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, j) =>
-            tone(f, b + scaleDur(finalT + j * 0.09), 0.5, bus),
-          );
-        else {
-          bubble(b + scaleDur(finalT), bus, 0.7);
-          [1046.5, 1318.5, 1568].forEach((f, j) =>
-            tone(f, b + scaleDur(finalT + 0.12 + j * 0.1), 0.3, bus),
-          );
+        const musCheckbox = document.getElementById("mus");
+        const sel = document.getElementById("music-select");
+        const chosen = sel && sel.value ? sel.value : "none";
+        if (!musCheckbox || !musCheckbox.checked) return;
+        if (!chosen || chosen === "none") return;
+        const buf = musicBuffers[chosen];
+        if (buf) {
+          const g = ac.createGain();
+          g.gain.value = vol;
+          const src = ac.createBufferSource();
+          src.buffer = buf;
+          src.loop = false;
+          src.playbackRate.value = 1; // do not let speed control affect music
+          src.connect(g);
+          g.connect(ac.destination);
+          if (dest) g.connect(dest);
+          src.start(ac.currentTime);
+          musicSource = src;
+          curNodes.push(src, g);
+        } else {
+          // load then play when ready
+          loadMusic(chosen)
+            .then(() => scheduleSounds())
+            .catch((e) => console.warn("music load error", e));
         }
       }
+
+      // try to populate music list on init
+      loadMusicList();
       // ---- playback / recording ----
       let raf = 0,
         running = false,
@@ -1582,6 +1445,25 @@
             recB.disabled = false;
             playB.disabled = false;
             document.getElementById("shuf").disabled = false;
+            // stop any playing music and scheduled nodes
+            try {
+              if (musicSource && typeof musicSource.stop === "function") {
+                musicSource.stop();
+              }
+            } catch (e) {}
+            musicSource = null;
+            curNodes.forEach((x) => {
+              try {
+                if (typeof x.stop === "function") {
+                  try {
+                    x.stop();
+                  } catch (e) {}
+                }
+                x.disconnect();
+              } catch (e) {}
+            });
+            curNodes = [];
+
             // restore play button UI
             playB.innerHTML =
               '<iconify-icon icon="bi:play-fill" ></iconify-icon> Preview';
@@ -1608,11 +1490,26 @@
         if (!running) return;
         cancelAnimationFrame(raf);
         running = false;
+        // stop any source-like nodes first (AudioBufferSourceNode or Oscillator)
         curNodes.forEach((x) => {
           try {
+            if (typeof x.stop === "function") {
+              try {
+                x.stop();
+              } catch (e) {}
+            }
             x.disconnect();
           } catch (e) {}
         });
+        curNodes = [];
+        // stop music source if playing
+        try {
+          if (musicSource && typeof musicSource.stop === "function") {
+            musicSource.stop();
+          }
+        } catch (e) {}
+        musicSource = null;
+
         if (recorder) {
           recorder.onstop = null;
           try {
@@ -1740,9 +1637,11 @@
         $("nm").value = "";
         $("fin").value = "";
         userPicData = null;
-        try { userPicImg.src = ""; } catch (e) {}
-        const previewImg = document.getElementById('preview');
-        if (previewImg) previewImg.style.display = 'none';
+        try {
+          userPicImg.src = "";
+        } catch (e) {}
+        const previewImg = document.getElementById("preview");
+        if (previewImg) previewImg.style.display = "none";
         applyData();
         $("nm").focus();
       };
@@ -1768,22 +1667,20 @@
       };
 
       // ---- music UI ----
-      let selectedSound = "stick";
       (function () {
-        const sel = document.getElementById("snd");
+        const sel = document.getElementById("music-select");
         const volEl = document.getElementById("music-vol");
-        if (!sel) return;
-        function applySel(k) {
-          selectedSound = k;
-          try {
-            sel.value = k;
-          } catch (e) {}
+        if (sel) {
+          sel.addEventListener("change", () => {
+            const v = sel.value;
+            if (v && v !== "none") {
+              // warm-up decode for faster start
+              loadMusic(v).catch((e) => console.warn("music warmup failed", e));
+            }
+          });
         }
-        sel.addEventListener("change", () => applySel(sel.value));
-        // music preview button removed — keep initial selection
-        applySel(sel.value || selectedSound);
 
-        // speed control wiring
+        // speed control wiring (does NOT affect music playback)
         const speedSel = document.getElementById("speed");
         if (speedSel) {
           const stored = parseFloat(
@@ -1797,6 +1694,7 @@
             const v = parseFloat(speedSel.value) || 1;
             timeScale = v;
             localStorage.setItem("speedPref", String(timeScale));
+            // deliberately do not change any music playbackRate here
           });
         }
       })();

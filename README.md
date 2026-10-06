@@ -75,6 +75,12 @@ Critical DOM IDs (do not rename unless updating the script):
 - Cross-browser testing for MediaRecorder/Audio (Safari, Firefox) — expect WebM-only in many cases.
 - Accessibility: keyboard reorder for messages and ARIA labels can be improved.
 
+## Music contributions
+
+- [farewell to W. : Partyton](https://pixabay.com/music/beautiful-plays-farewell-to-w-111721/)
+- [Best of Luck : amadozapana](https://pixabay.com/music/future-bass-best-of-luck-126966/)
+- [Closing Scene - Hopeful Farewell : Sonican](https://pixabay.com/music/ambient-closing-scene-hopeful-farewell-562094/)
+
 ## Contributing
 
 Open a pull request with clear scope. Small UI fixes and documentation updates welcome.
